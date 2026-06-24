@@ -27,7 +27,6 @@ const daftarMenu = [
 // ==========================================================
 // 2. KUNCI PENGAMAN KONEKSI DATABASE (PASSWORD SINKRONISASI)
 // ==========================================================
-// ⚠️ String ini wajib diinput sama persis dengan aturan di Firebase Cloud Firestore Rules!
 const PIN_AKSES = "TAICHANRIA2026"; 
 
 // State Penyimpanan Internal Aplikasi Kasir
@@ -128,13 +127,12 @@ window.prosesPembayaran = async function() {
         return;
     }
 
-    // Membentuk kerangka objek data transaksi sesuai kebutuhan validasi rules secure
     const dataTransaksi = {
         namaPelanggan: namaPelanggan,
         items: keranjang,
         totalBayar: totalHarga,
         waktu: new Date(), 
-        password: PIN_AKSES // Otomatis disisipkan sebagai kunci pembuka gerbang Firestore Security Rules
+        password: PIN_AKSES 
     };
 
     try {
@@ -142,71 +140,60 @@ window.prosesPembayaran = async function() {
             throw new Error("SDK Firebase belum sepenuhnya ter-load, mohon tunggu sebentar.");
         }
 
-        // Menyimpan data dokumen transaksi langsung ke cloud database Firestore koleksi 'transaksi'
         await window.addDoc(window.collection(window.db, "transaksi"), dataTransaksi);
-        
         alert(`Transaksi atas nama "${namaPelanggan}" SUKSES disimpan ke Cloud Database!`);
         
-        // Reset seluruh formulir kasir ke kondisi bersih semula
         keranjang = [];
         if (namaPelangganEl) namaPelangganEl.value = '';
         perbaruiTampilanKeranjang();
         
     } catch (error) {
         console.error("Gagal simpan transaksi ke Firebase: ", error);
-        alert("Akses simpan gagal! Pastikan konfigurasi config Firebase di index.html sudah benar & password sinkronisasi Anda cocok.");
+        alert("Akses simpan gagal! Periksa kembali Firebase Rules Anda.");
     }
 };
 
 // ==========================================================
-// 5. MONITORING LIVE OMZET REAL-TIME (VERSI PERBAIKAN TIMEZONE)
+// 5. MONITORING LIVE OMZET REAL-TIME (VERSI FIXED TIMEZONE)
 // ==========================================================
 
 function aktifkanLiveMonitoring() {
     const intervalCheck = setInterval(() => {
-        // Menunggu hingga window module Firebase selesai di-inject dari index.html
         if (window.db && window.collection && window.onSnapshot) {
             clearInterval(intervalCheck);
 
             const q = window.collection(window.db, "transaksi");
 
-            // Mengaktifkan stream realtime sinkronisasi data antar HP tanpa refresh halaman
             window.onSnapshot(q, (snapshot) => {
                 let totalOmzetHariIni = 0;
                 
-                // Mengambil tanggal hari ini secara lokal berdasarkan tahun, bulan, dan hari (Format: YYYY-MM-DD)
+                // Ambil string format YYYY-MM-DD waktu lokal HP
                 const tgl = new Date();
                 const hariIni = `${tgl.getFullYear()}-${String(tgl.getMonth() + 1).padStart(2, '0')}-${String(tgl.getDate()).padStart(2, '0')}`;
 
                 snapshot.forEach((doc) => {
                     const data = doc.data();
                     
-                    // Memastikan dokumen transaksi valid & memiliki password autentikasi lokal yang cocok
                     if (data.waktu && data.password === PIN_AKSES) {
-                        // Mengonversi waktu Firebase ke Date lokal HP Anda
                         const tglTransaksi = data.waktu.toDate();
                         const formatTglTransaksi = `${tglTransaksi.getFullYear()}-${String(tglTransaksi.getMonth() + 1).padStart(2, '0')}-${String(tglTransaksi.getDate()).padStart(2, '0')}`;
                         
-                        // Menjumlahkan akumulasi omzet jika tanggalnya sama persis
                         if (formatTglTransaksi === hariIni) {
                             totalOmzetHariIni += data.totalBayar;
                         }
                     }
                 });
 
-                // Memperbarui indikator tampilan nominal omzet live di bagian atas aplikasi
                 const totalOmzetEl = document.getElementById('total-omzet');
                 if (totalOmzetEl) {
                     totalOmzetEl.innerText = formatRupiah(totalOmzetHariIni);
                 }
             }, (error) => {
                 console.error("Gagal melakukan monitoring real-time (Permission Denied):", error);
-                alert("Gagal memuat omzet harian. Pastikan Firebase Rules Anda sudah dipublikasikan dengan benar.");
             });
         }
     }, 500);
 }
 
-// Eksekusi fungsi inisialisasi awal aplikasi saat dijalankan di browser
 renderTombolMenu();
 aktifkanLiveMonitoring();
