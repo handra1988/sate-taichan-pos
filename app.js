@@ -124,7 +124,7 @@ window.hapusItem = function(index) {
 };
 
 // ==========================================================
-// 3. PROSES BAYAR & SIMPAN CLOUD (TANPA INPUT NAMA)
+// 3. PROSES BAYAR & SIMPAN CLOUD (VERSI BERSIH TANPA CEK NAMA)
 // ==========================================================
 window.prosesPembayaran = async function() {
     if (keranjang.length === 0) {
@@ -132,7 +132,7 @@ window.prosesPembayaran = async function() {
         return;
     }
 
-    // Menghilangkan variabel namaPelanggan agar data tersimpan murni transaksi kasir
+    // Data transaksi murni tanpa variabel namaPelanggan
     const dataTransaksi = {
         items: keranjang,
         totalBayar: totalHarga,
@@ -141,9 +141,14 @@ window.prosesPembayaran = async function() {
     };
 
     try {
+        if (!window.db || !window.collection || !window.addDoc) {
+            throw new Error("Koneksi Firebase belum siap.");
+        }
+
         await window.addDoc(window.collection(window.db, "transaksi"), dataTransaksi);
         alert(`Transaksi sebesar ${formatRupiah(totalHarga)} SUKSES disimpan ke Cloud!`);
         
+        // Kosongkan keranjang setelah berhasil bayar
         keranjang = [];
         perbaruiTampilanKeranjang();
         
