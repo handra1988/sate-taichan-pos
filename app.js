@@ -159,7 +159,7 @@ window.prosesPembayaran = async function() {
 };
 
 // ==========================================================
-// 5. MONITORING LIVE OMZET REAL-TIME (READ DATA LIVE)
+// 5. MONITORING LIVE OMZET REAL-TIME (VERSI PERBAIKAN TIMEZONE)
 // ==========================================================
 
 function aktifkanLiveMonitoring() {
@@ -173,18 +173,22 @@ function aktifkanLiveMonitoring() {
             // Mengaktifkan stream realtime sinkronisasi data antar HP tanpa refresh halaman
             window.onSnapshot(q, (snapshot) => {
                 let totalOmzetHariIni = 0;
-                const hariIni = new Date().toDateString(); // Mengambil string tanggal hari ini (ex: "Wed Jun 24 2026")
+                
+                // Mengambil tanggal hari ini secara lokal berdasarkan tahun, bulan, dan hari (Format: YYYY-MM-DD)
+                const tgl = new Date();
+                const hariIni = `${tgl.getFullYear()}-${String(tgl.getMonth() + 1).padStart(2, '0')}-${String(tgl.getDate()).padStart(2, '0')}`;
 
                 snapshot.forEach((doc) => {
                     const data = doc.data();
                     
                     // Memastikan dokumen transaksi valid & memiliki password autentikasi lokal yang cocok
                     if (data.waktu && data.password === PIN_AKSES) {
-                        // Mengonversi format Firebase Timestamp ke Object Date Javascript asli
-                        const waktuTransaksi = data.waktu.toDate().toDateString();
+                        // Mengonversi waktu Firebase ke Date lokal HP Anda
+                        const tglTransaksi = data.waktu.toDate();
+                        const formatTglTransaksi = `${tglTransaksi.getFullYear()}-${String(tglTransaksi.getMonth() + 1).padStart(2, '0')}-${String(tglTransaksi.getDate()).padStart(2, '0')}`;
                         
-                        // Menjumlahkan akumulasi omzet jika transaksi dilakukan pada hari yang sama
-                        if (waktuTransaksi === hariIni) {
+                        // Menjumlahkan akumulasi omzet jika tanggalnya sama persis
+                        if (formatTglTransaksi === hariIni) {
                             totalOmzetHariIni += data.totalBayar;
                         }
                     }
@@ -197,6 +201,7 @@ function aktifkanLiveMonitoring() {
                 }
             }, (error) => {
                 console.error("Gagal melakukan monitoring real-time (Permission Denied):", error);
+                alert("Gagal memuat omzet harian. Pastikan Firebase Rules Anda sudah dipublikasikan dengan benar.");
             });
         }
     }, 500);
