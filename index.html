@@ -52,13 +52,16 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-        // Ekspos Firebase ke objek global browser agar bisa dibaca dari app.js
+        // Ekspos Firebase ke objek global browser agar aman diakses oleh skrip luar
         window.db = db;
         window.collection = collection;
         window.addDoc = addDoc;
         window.onSnapshot = onSnapshot;
+
+        // 🔥 PERBAIKAN: Memuat app.js secara dinamis hanya setelah Firebase siap
+        const script = document.createElement('script');
+        script.src = 'app.js';
+        document.body.appendChild(script);
     </script>
-    
-    <script src="app.js"></script>
 </body>
 </html>
