@@ -1,18 +1,23 @@
 // ==========================================================
-// 1. DATA MASTER MENU (BERDASARKAN DAFTAR BROSUR RESMI SATE TAICHAN RIA)
+// 1. DATA MASTER MENU SESUAI BROSUR RESMI SATE TAICHAN RIA
 // ==========================================================
 const daftarMenu = [
+    // Brosur 1: Sate & Sampingan
     { id: "p1", nama: "Paket I (6 Tsk + Lontong)", harga: 18000 },
     { id: "p2", nama: "Paket II (10 Tsk + Lontong)", harga: 30000 },
     { id: "p3", nama: "Paket III (6 Tsk Crispy + Lontong)", harga: 24000 },
+    { id: "a1", nama: "Extra Cabe", harga: 3000 },
+    { id: "a2", nama: "Extra Lontong", harga: 3000 },
     { id: "s1", nama: "Per Tusuk Ayam", harga: 3000 },
     { id: "s2", nama: "Per Tusuk Kulit", harga: 2500 },
     { id: "s3", nama: "Per Tusuk Ayam Crispy", harga: 4000 },
-    { id: "a1", nama: "Extra Cabe", harga: 3000 },
-    { id: "a2", nama: "Extra Lontong", harga: 3000 },
+    
+    // Brosur 2: Sosis Solo
     { id: "ss1", nama: "Sosis Solo Original", harga: 3000 },
     { id: "ss2", nama: "Sosis Solo Pedas", harga: 3500 },
     { id: "ss3", nama: "Sosis Solo Keju", harga: 3500 },
+    
+    // Brosur 3: Risol
     { id: "r1", nama: "Risol Mayo", harga: 3000 },
     { id: "r2", nama: "Risol Bolognese", harga: 3500 }
 ];
@@ -20,12 +25,13 @@ const daftarMenu = [
 const PIN_AKSES = "TAICHANRIA2026"; 
 let keranjang = [];
 let totalHarga = 0;
+let menuDipilih = null; // Menyimpan data menu sementara sebelum di-input jumlahnya
 
 function formatRupiah(angka) {
     return 'Rp ' + angka.toLocaleString('id-ID');
 }
 
-// 2. RENDERING UI
+// 2. RENDERING UI UTAMA
 function renderTombolMenu() {
     const containerMenu = document.getElementById('container-menu');
     if (!containerMenu) return;
@@ -38,20 +44,49 @@ function renderTombolMenu() {
             <div style="color: #ff4e50; font-size: 0.85rem; font-weight: 700;">${formatRupiah(menu.harga)}</div>
         `;
         tombol.onclick = function() {
-            tambahKeKeranjang(menu.nama, menu.harga);
+            bukaModalJumlah(menu);
         };
         containerMenu.appendChild(tombol);
     });
 }
 
-window.tambahKeKeranjang = function(namaMenu, harga) {
-    const itemSama = keranjang.find(item => item.nama === namaMenu);
+// ==========================================================
+// KONTROL POPUP JUMLAH (KASIR INPUT JUMLAH DULU)
+// ==========================================================
+function bukaModalJumlah(menu) {
+    menuDipilih = menu;
+    document.getElementById('modal-menu-title').innerText = menu.nama;
+    document.getElementById('modal-qty').value = 1; // reset ke angka 1
+    document.getElementById('popup-qty').style.display = 'flex';
+}
+
+window.ubahQty = function(nilai) {
+    const inputQty = document.getElementById('modal-qty');
+    let qtySekarang = parseInt(inputQty.value) || 1;
+    qtySekarang += nilai;
+    if (qtySekarang < 1) qtySekarang = 1;
+    inputQty.value = qtySekarang;
+};
+
+window.tutupModal = function() {
+    document.getElementById('popup-qty').style.display = 'none';
+    menuDipilih = null;
+};
+
+window.konfirmasiTambahKeKeranjang = function() {
+    if (!menuDipilih) return;
+    
+    const qtyInput = parseInt(document.getElementById('modal-qty').value) || 1;
+    const itemSama = keranjang.find(item => item.nama === menuDipilih.nama);
+    
     if (itemSama) {
-        itemSama.jumlah += 1;
+        itemSama.jumlah += qtyInput; // Jika menu sudah ada di keranjang, akumulasikan jumlahnya
     } else {
-        keranjang.push({ nama: namaMenu, harga: harga, jumlah: 1 });
+        keranjang.push({ nama: menuDipilih.nama, harga: menuDipilih.harga, jumlah: qtyInput });
     }
+    
     perbaruiTampilanKeranjang();
+    tutupModal();
 };
 
 function perbaruiTampilanKeranjang() {
@@ -88,22 +123,17 @@ window.hapusItem = function(index) {
     perbaruiTampilanKeranjang();
 };
 
-// 3. WRITE DATA TO FIREBASE
+// ==========================================================
+// 3. PROSES BAYAR & SIMPAN CLOUD (TANPA INPUT NAMA)
+// ==========================================================
 window.prosesPembayaran = async function() {
-    const namaPelangganEl = document.getElementById('nama-pelanggan');
-    const namaPelanggan = namaPelangganEl ? namaPelangganEl.value.trim() : "";
-
-    if (!namaPelanggan) {
-        alert('Mohon ketik nama pelanggan / nomor order terlebih dahulu!');
-        return;
-    }
     if (keranjang.length === 0) {
-        alert('Keranjang masih kosong, silakan klik menu sate terlebih dahulu!');
+        alert('Keranjang masih kosong, silakan pilih menu terlebih dahulu!');
         return;
     }
 
+    // Menghilangkan variabel namaPelanggan agar data tersimpan murni transaksi kasir
     const dataTransaksi = {
-        namaPelanggan: namaPelanggan,
         items: keranjang,
         totalBayar: totalHarga,
         waktu: new Date(), 
@@ -112,10 +142,9 @@ window.prosesPembayaran = async function() {
 
     try {
         await window.addDoc(window.collection(window.db, "transaksi"), dataTransaksi);
-        alert(`Transaksi atas nama "${namaPelanggan}" SUKSES disimpan!`);
+        alert(`Transaksi sebesar ${formatRupiah(totalHarga)} SUKSES disimpan ke Cloud!`);
         
         keranjang = [];
-        if (namaPelangganEl) namaPelangganEl.value = '';
         perbaruiTampilanKeranjang();
         
     } catch (error) {
@@ -124,7 +153,7 @@ window.prosesPembayaran = async function() {
     }
 };
 
-// 4. READ LIVE DATA OMZET (CLIENT-SIDE FILTER)
+// 4. MONITOR LIVE DATA OMZET
 function aktifkanLiveMonitoring() {
     if (window.db && window.collection && window.onSnapshot) {
         const q = window.collection(window.db, "transaksi");
@@ -156,6 +185,5 @@ function aktifkanLiveMonitoring() {
     }
 }
 
-// Inisialisasi awal aplikasi
 renderTombolMenu();
 aktifkanLiveMonitoring();
