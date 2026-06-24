@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>POS Sate Taichan Ria</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="app">
+        <header>
+            <h1>Sate Taichan Ria 🍢</h1>
+            <div id="monitor-omzet">Total Omzet Hari Ini: <span id="total-omzet">Rp 0</span></div>
+        </header>
+
+        <main class="kasir-container">
+            <section class="menu-section">
+                <h2>Daftar Menu 🔥</h2>
+                <div class="menu-grid" id="container-menu">
+                    </div>
+            </section>
+
+            <section class="cart-section">
+                <h2>Keranjang Belanja</h2>
+                <input type="text" id="nama-pelanggan" placeholder="Nama Pelanggan / Nomor Order" required>
+                
+                <ul id="daftar-keranjang">
+                    </ul>
+                
+                <div class="total">Total: <span id="total-harga">Rp 0</span></div>
+                <button id="btn-bayar" onclick="prosesPembayaran()">Bayar & Simpan ke Cloud</button>
+            </section>
+        </main>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getFirestore, collection, addDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+        // ====================================================================
+        // 🔥 SILAKAN GANTI DENGAN DATA KONFIGURASI WEB APP FIREBASE ANDA SENDIRI
+        // ====================================================================
+        const firebaseConfig = {
+            apiKey: "PASTE_API_KEY_ANDA_DI_SINI",
+            authDomain: "PASTE_AUTH_DOMAIN_ANDA_DI_SINI",
+            projectId: "PASTE_PROJECT_ID_ANDA_DI_SINI",
+            storageBucket: "PASTE_STORAGE_BUCKET_ANDA_DI_SINI",
+            messagingSenderId: "PASTE_MESSAGING_SENDER_ID_ANDA_DI_SINI",
+            appId: "PASTE_APP_ID_ANDA_DI_SINI"
+        };
+
+        // Inisialisasi Firebase & Firestore
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        // Ekspos Firebase ke objek global browser agar bisa dibaca dari app.js
+        window.db = db;
+        window.collection = collection;
+        window.addDoc = addDoc;
+        window.onSnapshot = onSnapshot;
+    </script>
+    
+    <script src="app.js"></script>
+</body>
+</html>
