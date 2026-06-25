@@ -36,7 +36,7 @@
         .btn-cancel { background: #cbd5e1; color: #333; border: none; flex: 1; padding: 12px; border-radius: 8px; font-weight: bold; cursor: pointer; }
         .btn-confirm { background: #ff4e50; color: white; border: none; flex: 1; padding: 12px; border-radius: 8px; font-weight: bold; cursor: pointer; }
 
-        /* Style Laporan Bulanan */
+        /* Style Laporan Umum (Bulanan & Harian) */
         .report-section {
             background-color: white; padding: 15px; border-radius: 12px;
             box-shadow: 0 4px 12px rgba(0,0,0,0.03); border: 1.5px solid #edf2f7; margin-top: 15px;
@@ -60,26 +60,33 @@
 </head>
 <body>
     <div id="app">
+        <!-- HEADER & MONITOR OMZET LIVE -->
         <header>
             <h1>Sate Taichan Ria 🍢</h1>
             <div id="monitor-omzet">Total Omzet Hari Ini: <span id="total-omzet">Rp 0</span></div>
         </header>
 
+        <!-- KASIR INTERFACE (MOBILE-FIRST) -->
         <main class="kasir-container">
+            <!-- Bagian Menu -->
             <section class="menu-section">
                 <h2>Daftar Menu 🔥</h2>
                 <div class="menu-grid" id="container-menu">
-                    </div>
+                    <!-- Tombol menu otomatis di-render oleh JavaScript -->
+                </div>
             </section>
 
+            <!-- Bagian Keranjang -->
             <section class="cart-section">
                 <h2>Keranjang Belanja</h2>
                 <ul id="daftar-keranjang">
-                    </ul>
+                    <!-- Item belanja akan muncul di sini -->
+                </ul>
                 <div class="total">Total: <span id="total-harga">Rp 0</span></div>
                 <button id="btn-bayar" onclick="prosesPembayaran()">Bayar & Simpan ke Cloud</button>
             </section>
 
+            <!-- Bagian Tabel Laporan Omzet Bulanan -->
             <section class="report-section">
                 <h2>Laporan Omzet Bulanan 📊</h2>
                 <div class="table-responsive">
@@ -93,7 +100,28 @@
                         </thead>
                         <tbody id="body-laporan-bulanan">
                             <tr>
-                                <td colspan="3" style="text-align: center; color: #718096;">Memuat data laporan...</td>
+                                <td colspan="3" style="text-align: center; color: #718096;">Memuat data laporan bulanan...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- 🔥 BARU: Bagian Tabel Laporan Omzet Harian (Paling Bawah) -->
+            <section class="report-section">
+                <h2>Laporan Omzet Harian 📅</h2>
+                <div class="table-responsive">
+                    <table class="report-table">
+                        <thead>
+                            <tr>
+                                <th>Tanggal</th>
+                                <th class="text-right">Total Omzet</th>
+                                <th style="text-align: center;">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody id="body-laporan-harian">
+                            <tr>
+                                <td colspan="3" style="text-align: center; color: #718096;">Memuat data laporan harian...</td>
                             </tr>
                         </tbody>
                     </table>
@@ -102,6 +130,7 @@
         </main>
     </div>
 
+    <!-- POPUP INPUT JUMLAH PESANAN -->
     <div id="popup-qty" class="modal">
         <div class="modal-content">
             <h3 id="modal-menu-title">Jumlah Pesanan</h3>
@@ -117,15 +146,18 @@
         </div>
     </div>
 
+    <!-- POPUP DETAIL TRANSAKSI (BULANAN/HARIAN) & HAPUS DATA -->
     <div id="popup-detail" class="modal">
         <div class="modal-content">
             <h3 id="modal-detail-title">Detail Transaksi</h3>
             <ul id="list-riwayat-transaksi" class="riwayat-list">
-                </ul>
+                <!-- Data riwayat per transaksi muncul disini -->
+            </ul>
             <button class="btn-cancel" style="width: 100%;" onclick="tutupModalDetail()">Tutup</button>
         </div>
     </div>
 
+    <!-- Firebase SDK (v10.8.0) via CDN -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getFirestore, collection, addDoc, onSnapshot, doc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
@@ -147,8 +179,8 @@
         window.collection = collection;
         window.addDoc = addDoc;
         window.onSnapshot = onSnapshot;
-        window.docRef = doc;         // Ekspos modul referensi dokumen untuk hapus data
-        window.deleteDoc = deleteDoc; // Ekspos modul eksekusi hapus database
+        window.docRef = doc;         
+        window.deleteDoc = deleteDoc; 
 
         const script = document.createElement('script');
         script.src = 'app.js';
