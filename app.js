@@ -21,6 +21,7 @@ const PIN_AKSES = "TAICHANRIA2026";
 let keranjang = [];
 let totalHarga = 0;
 let menuDipilih = null; 
+let semuaDataTransaksi = []; // Wadah global penyimpan seluruh dokumen transaksi cloud
 
 const namaBulanIndo = [
     "Januari", "Februari", "Maret", "April", "Mei", "Juni", 
@@ -159,6 +160,7 @@ function aktifkanLiveMonitoring() {
         window.onSnapshot(q, (snapshot) => {
             let totalOmzetHariIni = 0;
             let penampungBulanan = {};
+            semaDataTransaksi = []; // Reset ulang database lokal saat ada pembaruan cloud
 
             const tgl = new Date();
             const hariIni = `${tgl.getFullYear()}-${String(tgl.getMonth() + 1).padStart(2, '0')}-${String(tgl.getDate()).padStart(2, '0')}`;
@@ -166,6 +168,7 @@ function aktifkanLiveMonitoring() {
             snapshot.forEach((doc) => {
                 const data = doc.data();
                 if (data.waktu && data.password === PIN_AKSES) {
+                    const idDokumen = doc.id;
                     const tglTransaksi = data.waktu.toDate();
                     
                     const tahun = tglTransaksi.getFullYear();
@@ -174,6 +177,15 @@ function aktifkanLiveMonitoring() {
 
                     const formatTglTransaksi = `${tahun}-${String(bulanNum).padStart(2, '0')}-${hari}`;
                     const formatBulanTahun = `${tahun}-${String(bulanNum).padStart(2, '0')}`;
+
+                    // Simpan data lengkap ke database lokal internal
+                    semaDataTransaksi.push({
+                        id: idDokumen,
+                        bulanKey: formatBulanTahun,
+                        waktu: tglTransaksi,
+                        totalBayar: data.totalBayar,
+                        items: data.items
+                    });
 
                     if (formatTglTransaksi === hariIni) {
                         totalOmzetHariIni += data.totalBayar;
@@ -199,7 +211,6 @@ function aktifkanLiveMonitoring() {
     }
 }
 
-// 🔥 FIXED: Perbaikan spasi variabel nama totalOmzetBulanan
 function renderTabelLaporanBulanan(dataBulanan) {
     const tbody = document.getElementById('body-laporan-bulanan');
     if (!tbody) return;
@@ -208,7 +219,7 @@ function renderTabelLaporanBulanan(dataBulanan) {
     const bulanUrut = Object.keys(dataBulanan).sort().reverse();
 
     if (bulanUrut.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="2" style="text-align: center; color: #718096;">Belum ada data transaksi bulanan.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="3" style="text-align: center; color: #718096;">Belum ada data transaksi bulanan.</td></tr>`;
         return;
     }
 
@@ -221,10 +232,89 @@ function renderTabelLaporanBulanan(dataBulanan) {
         tr.innerHTML = `
             <td><strong>${namaBulan} ${tahun}</strong></td>
             <td class="text-right" style="font-weight: 600; color: #10b981;">${formatRupiah(totalOmzetBulanan)}</td>
+            <td style="text-align: center;">
+                <button class="btn-detail" onclick="bukaDetailBulan('${key}', '${namaBulan} ${tahun}')">Lihat Riwayat</button>
+            </td>
         `;
         tbody.appendChild(tr);
     });
 }
 
+// ==========================================================
+// 🔥 BARU: KONTROL POPUP DETAIL RIWAYAT & HAPUS DATA CLOUD
+// ==========================================================
+window.bukaDetailBulan = function(bulanKey, namaBulanTahun) {
+    document.getElementById('modal-detail-title').innerText = `Riwayat: ${namaBulanTahun}`;
+    const listRiwayat = document.getElementById('list-riwayat-transaksi');
+    listRiwayat.innerHTML = '';
+
+    // Filter transaksi murni yang termasuk dalam bulan yang dipilih kasir
+    const transaksiFilter = semaDataTransaksi.filter(t => t.bulanKey === bulanKey)
+                            .sort((a, b) => b.waktu - a.waktu); // Urutkan jam terbaru ke terlama
+
+    if (transaksiFilter.length === 0) {
+        listRiwayat.innerHTML = '<li style="text-align:center;color:#999;">Tidak ada transaksi.</li>';
+    } else {
+        transaksiFilter.forEach(t => {
+            const jam = String(t.waktu.getHours()).padStart(2, '0') + ':' + String(t.waktu.getMinutes()).padStart(2, '0');
+            const tgl = String(t.waktu.getDate()).padStart(2, '0');
+            
+            // Satukan item-item belanja jadi baris ringkas teks
+            const rincianItem = t.items.map(i => `${i.nama} (${i.jumlah}x)`).join(', ');
+
+            const li = document.createElement('li');
+            li.className = 'riwayat-item';
+            li.innerHTML = `
+                <div style="max-width: 70%; line-height: 1.3;">
+                    <span style="font-size:0.75rem; color:#a0aec0; font-weight:bold;">Tgl ${tgl} / Jam ${jam}</span><br>
+                    <span style="color:#4a5568; font-size:0.8rem;">${rincianItem}</span>
+                </div>
+                <div style="display:flex; align-items:center; gap:8px;">
+                    <strong style="color:#2d3748;">${formatRupiah(t.totalBayar)}</strong>
+                    <button class="btn-hapus-cloud" onclick="hapusTransaksiCloud('${t.id}', ${t.totalBayar})">Hapus</button>
+                </div>
+            `;
+            listRiwayat.appendChild(li);
+        });
+    }
+
+    document.getElementById('popup-detail').style.display = 'flex';
+};
+
+window.tutupModalDetail = function() {
+    document.getElementById('popup-detail').style.display = 'none';
+};
+
+// FUNGSI EKSEKUSI HAPUS DATA DARI FIREBASE SECARA LIVE
+window.hapusTransaksiCloud = async function(idDokumen, nominal) {
+    const konfirmasiAwal = confirm(`Apakah Anda yakin ingin MENGHAPUS DATA transaksi sebesar ${formatRupiah(nominal)} ini?`);
+    if (!konfirmasiAwal) return;
+
+    // Proteksi Keamanan: Meminta PIN Akses kasir sebelum eksekusi Cloud
+    const pinInput = prompt("Masukkan PIN Keamanan untuk menyetujui penghapusan data:");
+    if (pinInput !== PIN_AKSES) {
+        alert("PIN SALAH! Anda tidak memiliki izin menghapus data cloud.");
+        return;
+    }
+
+    try {
+        if (!window.db || !window.docRef || !window.deleteDoc) {
+            throw new Error("Modul penghapusan Firebase belum siap.");
+        }
+
+        // Jalankan perintah hapus dokumen berdasarkan ID unik dokumennya di Cloud Firestore
+        const dokumenRef = window.docRef(window.db, "transaksi", idDokumen);
+        await window.deleteDoc(dokumenRef);
+        
+        alert("Transaksi BERHASIL dihapus dari Cloud database!");
+        tutupModalDetail(); // Tutup modal setelah sukses agar tabel auto-refresh di latar belakang
+
+    } catch (error) {
+        console.error("Gagal menghapus data dari Firebase:", error);
+        alert("Gagal menghapus! Pastikan rules Firebase database Anda mengizinkan proses 'delete'.");
+    }
+};
+
+// Inisialisasi awal aplikasi
 renderTombolMenu();
 aktifkanLiveMonitoring();
