@@ -21,7 +21,7 @@ const PIN_AKSES = "TAICHANRIA2026";
 let keranjang = [];
 let totalHarga = 0;
 let menuDipilih = null; 
-let semuaDataTransaksi = []; // Wadah global penyimpan seluruh dokumen transaksi cloud
+let semuaDataTransaksi = []; 
 
 const namaBulanIndo = [
     "Januari", "Februari", "Maret", "April", "Mei", "Juni", 
@@ -152,7 +152,7 @@ window.prosesPembayaran = async function() {
     }
 };
 
-// 4. MONITOR LIVE DATA OMZET HARI INI & BULANAN
+// 4. MONITOR LIVE DATA OMZET HARI INI, BULANAN & HARIAN
 function aktifkanLiveMonitoring() {
     if (window.db && window.collection && window.onSnapshot) {
         const q = window.collection(window.db, "transaksi");
@@ -160,7 +160,8 @@ function aktifkanLiveMonitoring() {
         window.onSnapshot(q, (snapshot) => {
             let totalOmzetHariIni = 0;
             let penampungBulanan = {};
-            semaDataTransaksi = []; // Reset ulang database lokal saat ada pembaruan cloud
+            let penampungHarian = {}; // 🔥 Wadah penyimpan omzet kelompok harian ("YYYY-MM-DD")
+            semuaDataTransaksi = []; 
 
             const tgl = new Date();
             const hariIni = `${tgl.getFullYear()}-${String(tgl.getMonth() + 1).padStart(2, '0')}-${String(tgl.getDate()).padStart(2, '0')}`;
@@ -178,23 +179,32 @@ function aktifkanLiveMonitoring() {
                     const formatTglTransaksi = `${tahun}-${String(bulanNum).padStart(2, '0')}-${hari}`;
                     const formatBulanTahun = `${tahun}-${String(bulanNum).padStart(2, '0')}`;
 
-                    // Simpan data lengkap ke database lokal internal
-                    semaDataTransaksi.push({
+                    // Simpan data ke database lokal internal untuk penampil riwayat pop-up
+                    semuaDataTransaksi.push({
                         id: idDokumen,
                         bulanKey: formatBulanTahun,
+                        hariKey: formatTglTransaksi, // Kunci pencarian tanggal harian
                         waktu: tglTransaksi,
                         totalBayar: data.totalBayar,
                         items: data.items
                     });
 
+                    // A. Hitung Omzet Atas (Hari Ini Live)
                     if (formatTglTransaksi === hariIni) {
                         totalOmzetHariIni += data.totalBayar;
                     }
 
+                    // B. Akumulasi Laporan Bulanan
                     if (!penampungBulanan[formatBulanTahun]) {
                         penampungBulanan[formatBulanTahun] = 0;
                     }
                     penampungBulanan[formatBulanTahun] += data.totalBayar;
+
+                    // C. 🔥 Akumulasi Laporan Harian
+                    if (!penampungHarian[formatTglTransaksi]) {
+                        penampungHarian[formatTglTransaksi] = 0;
+                    }
+                    penampungHarian[formatTglTransaksi] += data.totalBayar;
                 }
             });
 
@@ -203,7 +213,9 @@ function aktifkanLiveMonitoring() {
                 totalOmzetEl.innerText = formatRupiah(totalOmzetHariIni);
             }
 
+            // Render kedua tabel laporan
             renderTabelLaporanBulanan(penampungBulanan);
+            renderTabelLaporanHarian(penampungHarian); // 🔥 Panggil fungsi gambar tabel harian
 
         }, (error) => {
             console.error("Gagal monitoring real-time:", error);
@@ -211,6 +223,7 @@ function aktifkanLiveMonitoring() {
     }
 }
 
+// Render Tabel Laporan Bulanan
 function renderTabelLaporanBulanan(dataBulanan) {
     const tbody = document.getElementById('body-laporan-bulanan');
     if (!tbody) return;
@@ -233,7 +246,38 @@ function renderTabelLaporanBulanan(dataBulanan) {
             <td><strong>${namaBulan} ${tahun}</strong></td>
             <td class="text-right" style="font-weight: 600; color: #10b981;">${formatRupiah(totalOmzetBulanan)}</td>
             <td style="text-align: center;">
-                <button class="btn-detail" onclick="bukaDetailBulan('${key}', '${namaBulan} ${tahun}')">Lihat Riwayat</button>
+                <button class="btn-detail" onclick="bukaDetailRiwayat('bulan', '${key}', '${namaBulan} ${tahun}')">Lihat Riwayat</button>
+            </td>
+        `;
+        tbody.appendChild(tr);
+    });
+}
+
+// 🔥 BARU: Fungsi Render Tabel Laporan Harian (Urut dari hari terbaru)
+function renderTabelLaporanHarian(dataHarian) {
+    const tbody = document.getElementById('body-laporan-harian');
+    if (!tbody) return;
+    tbody.innerHTML = '';
+
+    const hariUrut = Object.keys(dataHarian).sort().reverse();
+
+    if (hariUrut.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="3" style="text-align: center; color: #718096;">Belum ada data transaksi harian.</td></tr>`;
+        return;
+    }
+
+    hariUrut.forEach(key => {
+        const [tahun, bulanStr, hariStr] = key.split('-');
+        const namaBulan = namaBulanIndo[parseInt(bulanStr) - 1];
+        const labelTanggal = `${hariStr} ${namaBulan} ${tahun}`;
+        const totalOmzetHarian = dataHarian[key];
+
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td>${labelTanggal}</td>
+            <td class="text-right" style="font-weight: 600; color: #3182ce;">${formatRupiah(totalOmzetHarian)}</td>
+            <td style="text-align: center;">
+                <button class="btn-detail" onclick="bukaDetailRiwayat('hari', '${key}', '${labelTanggal}')">Lihat Riwayat</button>
             </td>
         `;
         tbody.appendChild(tr);
@@ -241,16 +285,17 @@ function renderTabelLaporanBulanan(dataBulanan) {
 }
 
 // ==========================================================
-// 🔥 BARU: KONTROL POPUP DETAIL RIWAYAT & HAPUS DATA CLOUD
+// KONTROL POPUP DETAIL RIWAYAT & HAPUS DATA CLOUD (UNIVERSAL)
 // ==========================================================
-window.bukaDetailBulan = function(bulanKey, namaBulanTahun) {
-    document.getElementById('modal-detail-title').innerText = `Riwayat: ${namaBulanTahun}`;
+window.bukaDetailRiwayat = function(tipe, kunciPencarian, labelJudul) {
+    document.getElementById('modal-detail-title').innerText = `Riwayat: ${labelJudul}`;
     const listRiwayat = document.getElementById('list-riwayat-transaksi');
     listRiwayat.innerHTML = '';
 
-    // Filter transaksi murni yang termasuk dalam bulan yang dipilih kasir
-    const transaksiFilter = semaDataTransaksi.filter(t => t.bulanKey === bulanKey)
-                            .sort((a, b) => b.waktu - a.waktu); // Urutkan jam terbaru ke terlama
+    // Filter data berdasarkan tipe klik: 'bulan' (Format YYYY-MM) atau 'hari' (Format YYYY-MM-DD)
+    const transaksiFilter = semuaDataTransaksi.filter(t => {
+        return tipe === 'bulan' ? t.bulanKey === kunciPencarian : t.hariKey === kunciPencarian;
+    }).sort((a, b) => b.waktu - a.waktu); 
 
     if (transaksiFilter.length === 0) {
         listRiwayat.innerHTML = '<li style="text-align:center;color:#999;">Tidak ada transaksi.</li>';
@@ -258,15 +303,15 @@ window.bukaDetailBulan = function(bulanKey, namaBulanTahun) {
         transaksiFilter.forEach(t => {
             const jam = String(t.waktu.getHours()).padStart(2, '0') + ':' + String(t.waktu.getMinutes()).padStart(2, '0');
             const tgl = String(t.waktu.getDate()).padStart(2, '0');
+            const bulanSingkat = namaBulanIndo[t.waktu.getMonth()].substring(0, 3);
             
-            // Satukan item-item belanja jadi baris ringkas teks
             const rincianItem = t.items.map(i => `${i.nama} (${i.jumlah}x)`).join(', ');
 
             const li = document.createElement('li');
             li.className = 'riwayat-item';
             li.innerHTML = `
                 <div style="max-width: 70%; line-height: 1.3;">
-                    <span style="font-size:0.75rem; color:#a0aec0; font-weight:bold;">Tgl ${tgl} / Jam ${jam}</span><br>
+                    <span style="font-size:0.75rem; color:#a0aec0; font-weight:bold;">${tgl} ${bulanSingkat} / ${jam}</span><br>
                     <span style="color:#4a5568; font-size:0.8rem;">${rincianItem}</span>
                 </div>
                 <div style="display:flex; align-items:center; gap:8px;">
@@ -285,12 +330,11 @@ window.tutupModalDetail = function() {
     document.getElementById('popup-detail').style.display = 'none';
 };
 
-// FUNGSI EKSEKUSI HAPUS DATA DARI FIREBASE SECARA LIVE
+// Eksekusi Hapus Data Firebase
 window.hapusTransaksiCloud = async function(idDokumen, nominal) {
     const konfirmasiAwal = confirm(`Apakah Anda yakin ingin MENGHAPUS DATA transaksi sebesar ${formatRupiah(nominal)} ini?`);
     if (!konfirmasiAwal) return;
 
-    // Proteksi Keamanan: Meminta PIN Akses kasir sebelum eksekusi Cloud
     const pinInput = prompt("Masukkan PIN Keamanan untuk menyetujui penghapusan data:");
     if (pinInput !== PIN_AKSES) {
         alert("PIN SALAH! Anda tidak memiliki izin menghapus data cloud.");
@@ -302,16 +346,15 @@ window.hapusTransaksiCloud = async function(idDokumen, nominal) {
             throw new Error("Modul penghapusan Firebase belum siap.");
         }
 
-        // Jalankan perintah hapus dokumen berdasarkan ID unik dokumennya di Cloud Firestore
         const dokumenRef = window.docRef(window.db, "transaksi", idDokumen);
         await window.deleteDoc(dokumenRef);
         
         alert("Transaksi BERHASIL dihapus dari Cloud database!");
-        tutupModalDetail(); // Tutup modal setelah sukses agar tabel auto-refresh di latar belakang
+        tutupModalDetail(); 
 
     } catch (error) {
         console.error("Gagal menghapus data dari Firebase:", error);
-        alert("Gagal menghapus! Pastikan rules Firebase database Anda mengizinkan proses 'delete'.");
+        alert("Gagal menghapus! Periksa kembali koneksi internet Anda.");
     }
 };
 
