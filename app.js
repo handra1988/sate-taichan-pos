@@ -22,7 +22,6 @@ let keranjang = [];
 let totalHarga = 0;
 let menuDipilih = null; 
 
-// Nama-nama bulan Indonesia untuk tampilan laporan tabel
 const namaBulanIndo = [
     "Januari", "Februari", "Maret", "April", "Mei", "Juni", 
     "Juli", "Agustus", "September", "Oktober", "November", "Desember"
@@ -159,8 +158,6 @@ function aktifkanLiveMonitoring() {
 
         window.onSnapshot(q, (snapshot) => {
             let totalOmzetHariIni = 0;
-            
-            // Wadah penyimpanan sementara untuk hitung bulanan (Format key: "YYYY-MM")
             let penampungBulanan = {};
 
             const tgl = new Date();
@@ -178,12 +175,10 @@ function aktifkanLiveMonitoring() {
                     const formatTglTransaksi = `${tahun}-${String(bulanNum).padStart(2, '0')}-${hari}`;
                     const formatBulanTahun = `${tahun}-${String(bulanNum).padStart(2, '0')}`;
 
-                    // A. Akumulasi Omzet Hari Ini
                     if (formatTglTransaksi === hariIni) {
                         totalOmzetHariIni += data.totalBayar;
                     }
 
-                    // B. Akumulasi Omzet Per Bulan
                     if (!penampungBulanan[formatBulanTahun]) {
                         penampungBulanan[formatBulanTahun] = 0;
                     }
@@ -191,13 +186,11 @@ function aktifkanLiveMonitoring() {
                 }
             });
 
-            // Update Monitor Omzet Atas (Hari Ini)
             const totalOmzetEl = document.getElementById('total-omzet');
             if (totalOmzetEl) {
                 totalOmzetEl.innerText = formatRupiah(totalOmzetHariIni);
             }
 
-            // Update Tabel Laporan Omzet Bulanan (Bawah)
             renderTabelLaporanBulanan(penampungBulanan);
 
         }, (error) => {
@@ -206,13 +199,12 @@ function aktifkanLiveMonitoring() {
     }
 }
 
-// Fungsi pembantu untuk menggambar baris-baris tabel bulanan
+// 🔥 FIXED: Perbaikan spasi variabel nama totalOmzetBulanan
 function renderTabelLaporanBulanan(dataBulanan) {
     const tbody = document.getElementById('body-laporan-bulanan');
     if (!tbody) return;
     tbody.innerHTML = '';
 
-    // Ambil semua key bulan-tahun ("2026-06", dll) lalu urutkan dari yang terbaru
     const bulanUrut = Object.keys(dataBulanan).sort().reverse();
 
     if (bulanUrut.length === 0) {
@@ -223,17 +215,16 @@ function renderTabelLaporanBulanan(dataBulanan) {
     bulanUrut.forEach(key => {
         const [tahun, bulanStr] = key.split('-');
         const namaBulan = namaBulanIndo[parseInt(bulanStr) - 1];
-        const totalOmzetBulan Ini = dataBulanan[key];
+        const totalOmzetBulanan = dataBulanan[key];
 
         const tr = document.createElement('tr');
         tr.innerHTML = `
             <td><strong>${namaBulan} ${tahun}</strong></td>
-            <td class="text-right" style="font-weight: 600; color: #10b981;">${formatRupiah(totalOmzetBulanIni)}</td>
+            <td class="text-right" style="font-weight: 600; color: #10b981;">${formatRupiah(totalOmzetBulanan)}</td>
         `;
         tbody.appendChild(tr);
     });
 }
 
-// Inisialisasi awal aplikasi
 renderTombolMenu();
 aktifkanLiveMonitoring();
