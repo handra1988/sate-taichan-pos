@@ -153,14 +153,13 @@ window.prosesPembayaran = async function() {
     }
 };
 
-// 4. MONITOR LIVE DATA OMZET HARI INI, BULANAN & HARIAN
+// 4. MONITOR LIVE DATA OMZET HARI INI & HARIAN
 function aktifkanLiveMonitoring() {
     if (window.db && window.collection && window.onSnapshot) {
         const q = window.collection(window.db, "transaksi");
 
         window.onSnapshot(q, (snapshot) => {
             let totalOmzetHariIni = 0;
-            let penampungBulanan = {};
             let penampungHarian = {}; 
             semuaDataTransaksi = []; 
 
@@ -172,7 +171,6 @@ function aktifkanLiveMonitoring() {
                 if (data.waktu && data.password === PIN_AKSES) {
                     const idDokumen = doc.id;
                     
-                    // Deteksi tipe data waktu dari Firebase (Timestamp atau standard Date)
                     const tglTransaksi = data.waktu.toDate ? data.waktu.toDate() : new Date(data.waktu);
                     
                     const tahun = tglTransaksi.getFullYear();
@@ -195,11 +193,6 @@ function aktifkanLiveMonitoring() {
                         totalOmzetHariIni += data.totalBayar;
                     }
 
-                    if (!penampungBulanan[formatBulanTahun]) {
-                        penampungBulanan[formatBulanTahun] = 0;
-                    }
-                    penampungBulanan[formatBulanTahun] += data.totalBayar;
-
                     if (!penampungHarian[formatTglTransaksi]) {
                         penampungHarian[formatTglTransaksi] = 0;
                     }
@@ -212,42 +205,12 @@ function aktifkanLiveMonitoring() {
                 totalOmzetEl.innerText = formatRupiah(totalOmzetHariIni);
             }
 
-            renderTabelLaporanBulanan(penampungBulanan);
             renderTabelLaporanHarian(penampungHarian); 
 
         }, (error) => {
             console.error("Gagal monitoring real-time:", error);
         });
     }
-}
-
-function renderTabelLaporanBulanan(dataBulanan) {
-    const tbody = document.getElementById('body-laporan-bulanan');
-    if (!tbody) return;
-    tbody.innerHTML = '';
-
-    const bulanUrut = Object.keys(dataBulanan).sort().reverse();
-
-    if (bulanUrut.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="3" style="text-align: center; color: #718096;">Belum ada data transaksi bulanan.</td></tr>`;
-        return;
-    }
-
-    bulanUrut.forEach(key => {
-        const [tahun, bulanStr] = key.split('-');
-        const namaBulan = namaBulanIndo[parseInt(bulanStr) - 1];
-        const totalOmzetBulanan = dataBulanan[key];
-
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-            <td><strong>${namaBulan} ${tahun}</strong></td>
-            <td class="text-right" style="font-weight: 600; color: #10b981;">${formatRupiah(totalOmzetBulanan)}</td>
-            <td style="text-align: center;">
-                <button class="btn-detail" onclick="bukaDetailRiwayat('bulan', '${key}', '${namaBulan} ${tahun}')">Lihat Riwayat</button>
-            </td>
-        `;
-        tbody.appendChild(tr);
-    });
 }
 
 function renderTabelLaporanHarian(dataHarian) {
@@ -286,7 +249,6 @@ window.bukaVerifikasiOwner = function() {
     if (pin === PIN_AKSES) {
         document.getElementById("modal-owner").style.display = "block";
         
-        // Atur input tanggal ke hari ini secara otomatis
         const hariIni = new Date().toISOString().split('T')[0];
         document.getElementById("owner-tgl-mulai").value = hariIni;
         document.getElementById("owner-tgl-selesai").value = hariIni;
@@ -317,7 +279,6 @@ window.prosesMuatLaporanOwner = function() {
     let totalNota = 0;
     let kuantitasMenu = {};
 
-    // Filter dari penampung transaksi snapshot real-time internal
     semuaDataTransaksi.forEach(t => {
         if (t.waktu >= tglMulai && t.waktu <= tglSelesai) {
             totalOmzet += t.totalBayar;
@@ -337,12 +298,10 @@ window.prosesMuatLaporanOwner = function() {
 
     let rataRataNota = totalNota > 0 ? Math.round(totalOmzet / totalNota) : 0;
 
-    // Tampilkan data ke komponen teks
     document.getElementById("owner-txt-omzet").innerText = formatRupiah(totalOmzet);
     document.getElementById("owner-txt-transaksi").innerText = totalNota + " Nota";
     document.getElementById("owner-txt-rata").innerText = formatRupiah(rataRataNota);
 
-    // Update list tabel kuantitas dan grafik Chart
     renderListKuantitasOwner(kuantitasMenu);
     renderGrafikBatangOwner(kuantitasMenu);
 };
@@ -411,7 +370,7 @@ function renderGrafikBatangOwner(dataMenu) {
                     ticks: { stepSize: 1 }
                 },
                 x: {
-                    display: false // Sembunyikan label bawah agar tidak menumpuk di HP
+                    display: false 
                 }
             },
             plugins: {
@@ -422,16 +381,14 @@ function renderGrafikBatangOwner(dataMenu) {
 }
 
 // ==========================================================
-// KONTROL POPUP DETAIL RIWAYAT & HAPUS DATA CLOUD (UNIVERSAL)
+// KONTROL POPUP DETAIL RIWAYAT & HAPUS DATA CLOUD
 // ==========================================================
 window.bukaDetailRiwayat = function(tipe, kunciPencarian, labelJudul) {
     document.getElementById('modal-detail-title').innerText = `Riwayat: ${labelJudul}`;
     const listRiwayat = document.getElementById('list-riwayat-transaksi');
     listRiwayat.innerHTML = '';
 
-    const transaksiFilter = semuaDataTransaksi.filter(t => {
-        return tipe === 'bulan' ? t.bulanKey === kunciPencarian : t.hariKey === kunciPencarian;
-    }).sort((a, b) => b.waktu - a.waktu); 
+    const transaksiFilter = semuaDataTransaksi.filter(t => t.hariKey === kunciPencarian).sort((a, b) => b.waktu - a.waktu); 
 
     if (transaksiFilter.length === 0) {
         listRiwayat.innerHTML = '<li style="text-align:center;color:#999;">Tidak ada transaksi.</li>';
