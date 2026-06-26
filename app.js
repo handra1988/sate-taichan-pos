@@ -22,6 +22,7 @@ let keranjang = [];
 let totalHarga = 0;
 let menuDipilih = null; 
 let semuaDataTransaksi = []; 
+let objekGrafikMenu = null; // Instans Chart.js global
 
 const namaBulanIndo = [
     "Januari", "Februari", "Maret", "April", "Mei", "Juni", 
@@ -160,7 +161,7 @@ function aktifkanLiveMonitoring() {
         window.onSnapshot(q, (snapshot) => {
             let totalOmzetHariIni = 0;
             let penampungBulanan = {};
-            let penampungHarian = {}; // 🔥 Wadah penyimpan omzet kelompok harian ("YYYY-MM-DD")
+            let penampungHarian = {}; 
             semuaDataTransaksi = []; 
 
             const tgl = new Date();
@@ -170,7 +171,9 @@ function aktifkanLiveMonitoring() {
                 const data = doc.data();
                 if (data.waktu && data.password === PIN_AKSES) {
                     const idDokumen = doc.id;
-                    const tglTransaksi = data.waktu.toDate();
+                    
+                    // Deteksi tipe data waktu dari Firebase (Timestamp atau standard Date)
+                    const tglTransaksi = data.waktu.toDate ? data.waktu.toDate() : new Date(data.waktu);
                     
                     const tahun = tglTransaksi.getFullYear();
                     const bulanNum = tglTransaksi.getMonth() + 1;
@@ -179,28 +182,24 @@ function aktifkanLiveMonitoring() {
                     const formatTglTransaksi = `${tahun}-${String(bulanNum).padStart(2, '0')}-${hari}`;
                     const formatBulanTahun = `${tahun}-${String(bulanNum).padStart(2, '0')}`;
 
-                    // Simpan data ke database lokal internal untuk penampil riwayat pop-up
                     semuaDataTransaksi.push({
                         id: idDokumen,
                         bulanKey: formatBulanTahun,
-                        hariKey: formatTglTransaksi, // Kunci pencarian tanggal harian
+                        hariKey: formatTglTransaksi, 
                         waktu: tglTransaksi,
                         totalBayar: data.totalBayar,
                         items: data.items
                     });
 
-                    // A. Hitung Omzet Atas (Hari Ini Live)
                     if (formatTglTransaksi === hariIni) {
                         totalOmzetHariIni += data.totalBayar;
                     }
 
-                    // B. Akumulasi Laporan Bulanan
                     if (!penampungBulanan[formatBulanTahun]) {
                         penampungBulanan[formatBulanTahun] = 0;
                     }
                     penampungBulanan[formatBulanTahun] += data.totalBayar;
 
-                    // C. 🔥 Akumulasi Laporan Harian
                     if (!penampungHarian[formatTglTransaksi]) {
                         penampungHarian[formatTglTransaksi] = 0;
                     }
@@ -213,9 +212,8 @@ function aktifkanLiveMonitoring() {
                 totalOmzetEl.innerText = formatRupiah(totalOmzetHariIni);
             }
 
-            // Render kedua tabel laporan
             renderTabelLaporanBulanan(penampungBulanan);
-            renderTabelLaporanHarian(penampungHarian); // 🔥 Panggil fungsi gambar tabel harian
+            renderTabelLaporanHarian(penampungHarian); 
 
         }, (error) => {
             console.error("Gagal monitoring real-time:", error);
@@ -223,7 +221,6 @@ function aktifkanLiveMonitoring() {
     }
 }
 
-// Render Tabel Laporan Bulanan
 function renderTabelLaporanBulanan(dataBulanan) {
     const tbody = document.getElementById('body-laporan-bulanan');
     if (!tbody) return;
@@ -253,7 +250,6 @@ function renderTabelLaporanBulanan(dataBulanan) {
     });
 }
 
-// 🔥 BARU: Fungsi Render Tabel Laporan Harian (Urut dari hari terbaru)
 function renderTabelLaporanHarian(dataHarian) {
     const tbody = document.getElementById('body-laporan-harian');
     if (!tbody) return;
@@ -284,6 +280,147 @@ function renderTabelLaporanHarian(dataHarian) {
     });
 }
 
+// 5. SISTEM DASBOR ANALISIS PEMILIK (OWNER DASHBOARD)
+window.bukaVerifikasiOwner = function() {
+    const pin = prompt("Masukkan PIN Akses Pemilik untuk membuka analisis finansial:");
+    if (pin === PIN_AKSES) {
+        document.getElementById("modal-owner").style.display = "block";
+        
+        // Atur input tanggal ke hari ini secara otomatis
+        const hariIni = new Date().toISOString().split('T')[0];
+        document.getElementById("owner-tgl-mulai").value = hariIni;
+        document.getElementById("owner-tgl-selesai").value = hariIni;
+        
+        prosesMuatLaporanOwner();
+    } else if (pin !== null) {
+        alert("PIN Salah! Akses dasbor ditolak.");
+    }
+};
+
+window.tutupOwnerDashboard = function() {
+    document.getElementById("modal-owner").style.display = "none";
+};
+
+window.prosesMuatLaporanOwner = function() {
+    const tglMulaiStr = document.getElementById("owner-tgl-mulai").value;
+    const tglSelesaiStr = document.getElementById("owner-tgl-selesai").value;
+    
+    if (!tglMulaiStr || !tglSelesaiStr) {
+        alert("Pilih tanggal mulai dan selesai terlebih dahulu!");
+        return;
+    }
+
+    const tglMulai = new Date(tglMulaiStr + "T00:00:00");
+    const tglSelesai = new Date(tglSelesaiStr + "T23:59:59");
+
+    let totalOmzet = 0;
+    let totalNota = 0;
+    let kuantitasMenu = {};
+
+    // Filter dari penampung transaksi snapshot real-time internal
+    semuaDataTransaksi.forEach(t => {
+        if (t.waktu >= tglMulai && t.waktu <= tglSelesai) {
+            totalOmzet += t.totalBayar;
+            totalNota++;
+
+            if (t.items && Array.isArray(t.items)) {
+                t.items.forEach(item => {
+                    if (kuantitasMenu[item.nama]) {
+                        kuantitasMenu[item.nama] += item.jumlah;
+                    } else {
+                        kuantitasMenu[item.nama] = item.jumlah;
+                    }
+                });
+            }
+        }
+    });
+
+    let rataRataNota = totalNota > 0 ? Math.round(totalOmzet / totalNota) : 0;
+
+    // Tampilkan data ke komponen teks
+    document.getElementById("owner-txt-omzet").innerText = formatRupiah(totalOmzet);
+    document.getElementById("owner-txt-transaksi").innerText = totalNota + " Nota";
+    document.getElementById("owner-txt-rata").innerText = formatRupiah(rataRataNota);
+
+    // Update list tabel kuantitas dan grafik Chart
+    renderListKuantitasOwner(kuantitasMenu);
+    renderGrafikBatangOwner(kuantitasMenu);
+};
+
+function renderListKuantitasOwner(dataMenu) {
+    const container = document.getElementById("owner-list-item");
+    container.innerHTML = "";
+
+    const sortedMenu = Object.entries(dataMenu).sort((a, b) => b[1] - a[1]);
+
+    if (sortedMenu.length === 0) {
+        container.innerHTML = `<p style="color: #7f8c8d; text-align: center; padding-top: 20px;">Tidak ada penjualan.</p>`;
+        return;
+    }
+
+    let html = `<table style="width:100%; border-collapse: collapse; text-align: left;">
+        <tr style="border-bottom: 2px solid #ddd; color: #4a5568; font-weight:bold;">
+            <th style="padding: 6px 0;">Item Menu</th>
+            <th style="padding: 6px 0; text-align: right;">Kuantitas</th>
+        </tr>`;
+
+    sortedMenu.forEach(([nama, qty]) => {
+        html += `<tr style="border-bottom: 1px solid #eee;">
+            <td style="padding: 6px 0; color:#4a5568;">${nama}</td>
+            <td style="padding: 6px 0; text-align: right; font-weight: bold; color: #ff4e50;">${qty} Qty</td>
+        </tr>`;
+    });
+
+    html += `</table>`;
+    container.innerHTML = html;
+}
+
+function renderGrafikBatangOwner(dataMenu) {
+    const ctx = document.getElementById('canvasGrafikMenu').getContext('2d');
+    
+    if (objekGrafikMenu) {
+        objekGrafikMenu.destroy();
+    }
+
+    const labels = Object.keys(dataMenu);
+    const values = Object.values(dataMenu);
+
+    if (labels.length === 0) {
+        return; 
+    }
+
+    objekGrafikMenu = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Item Terjual (Qty)',
+                data: values,
+                backgroundColor: 'rgba(255, 78, 80, 0.6)',
+                borderColor: 'rgba(255, 78, 80, 1)',
+                borderWidth: 1,
+                borderRadius: 4
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: { stepSize: 1 }
+                },
+                x: {
+                    display: false // Sembunyikan label bawah agar tidak menumpuk di HP
+                }
+            },
+            plugins: {
+                legend: { display: false }
+            }
+        }
+    });
+}
+
 // ==========================================================
 // KONTROL POPUP DETAIL RIWAYAT & HAPUS DATA CLOUD (UNIVERSAL)
 // ==========================================================
@@ -292,7 +429,6 @@ window.bukaDetailRiwayat = function(tipe, kunciPencarian, labelJudul) {
     const listRiwayat = document.getElementById('list-riwayat-transaksi');
     listRiwayat.innerHTML = '';
 
-    // Filter data berdasarkan tipe klik: 'bulan' (Format YYYY-MM) atau 'hari' (Format YYYY-MM-DD)
     const transaksiFilter = semuaDataTransaksi.filter(t => {
         return tipe === 'bulan' ? t.bulanKey === kunciPencarian : t.hariKey === kunciPencarian;
     }).sort((a, b) => b.waktu - a.waktu); 
@@ -330,7 +466,6 @@ window.tutupModalDetail = function() {
     document.getElementById('popup-detail').style.display = 'none';
 };
 
-// Eksekusi Hapus Data Firebase
 window.hapusTransaksiCloud = async function(idDokumen, nominal) {
     const konfirmasiAwal = confirm(`Apakah Anda yakin ingin MENGHAPUS DATA transaksi sebesar ${formatRupiah(nominal)} ini?`);
     if (!konfirmasiAwal) return;
