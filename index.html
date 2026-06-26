@@ -5,9 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>POS Sate Taichan Ria</title>
     <link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#ff4e50">
-<meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="theme-color" content="#ff4e50">
+    <meta name="apple-mobile-web-app-capable" content="yes">
     <link rel="stylesheet" href="style.css">
+    
+    <!-- Library untuk Grafik & Ikon -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
     <style>
         /* Style popup/modal input kuantitas & detail laporan */
         .modal {
@@ -65,7 +70,7 @@
     <div id="app">
         <!-- HEADER & MONITOR OMZET LIVE -->
         <header>
-            <h1>Sate Taichan Ria 🍢</h1>
+            <h1>Sate Taichan Ria 🍢🔥</h1>
             <div id="monitor-omzet">Total Omzet Hari Ini: <span id="total-omzet">Rp 0</span></div>
         </header>
 
@@ -73,7 +78,7 @@
         <main class="kasir-container">
             <!-- Bagian Menu -->
             <section class="menu-section">
-                <h2>Daftar Menu 🔥</h2>
+                <h2>Daftar Menu 📋</h2>
                 <div class="menu-grid" id="container-menu">
                     <!-- Tombol menu otomatis di-render oleh JavaScript -->
                 </div>
@@ -110,7 +115,7 @@
                 </div>
             </section>
 
-            <!-- 🔥 BARU: Bagian Tabel Laporan Omzet Harian (Paling Bawah) -->
+            <!-- Bagian Tabel Laporan Omzet Harian -->
             <section class="report-section">
                 <h2>Laporan Omzet Harian 📅</h2>
                 <div class="table-responsive">
@@ -157,6 +162,76 @@
                 <!-- Data riwayat per transaksi muncul disini -->
             </ul>
             <button class="btn-cancel" style="width: 100%;" onclick="tutupModalDetail()">Tutup</button>
+        </div>
+    </div>
+
+    <!-- TOMBOL RAHASIA OWNER -->
+    <button id="btn-owner-dashboard" onclick="bukaVerifikasiOwner()" style="position: fixed; bottom: 20px; left: 20px; background: #34495e; color: white; border: none; padding: 12px; border-radius: 50%; width: 55px; height: 55px; cursor: pointer; z-index: 999; box-shadow: 0 4px 10px rgba(0,0,0,0.3); display: flex; align-items: center; justify-content: center; font-size: 1.3rem;">
+        <i class="fas fa-chart-line"></i>
+    </button>
+
+    <!-- MODAL DASBOR LAPORAN OWNER (GRAFIK & FILTER) -->
+    <div id="modal-owner" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 1001; overflow-y: auto; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;">
+        <div style="background: #f8f9fa; max-width: 800px; margin: 20px auto; padding: 20px; border-radius: 12px; box-shadow: 0 5px 15px rgba(0,0,0,0.3); position: relative; width: 90%;">
+            
+            <!-- Header Modal -->
+            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #e9ecef; padding-bottom: 12px; margin-bottom: 15px;">
+                <h2 style="margin: 0; color: #2c3e50; font-size: 1.3rem;"><i class="fas fa-store"></i> Analisis Sate Taichan Ria</h2>
+                <button onclick="tutupOwnerDashboard()" style="background: #e74c3c; color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 0.85rem;">Tutup <i class="fas fa-times"></i></button>
+            </div>
+
+            <!-- Filter Rentang Tanggal -->
+            <div style="background: white; padding: 12px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); margin-bottom: 15px; display: flex; flex-wrap: wrap; gap: 10px; align-items: flex-end;">
+                <div style="flex: 1; min-width: 130px;">
+                    <label style="display: block; font-size: 11px; font-weight: bold; color: #7f8c8d; margin-bottom: 4px;">TANGGAL MULAI</label>
+                    <input type="date" id="owner-tgl-mulai" style="width: 100%; padding: 6px; border: 1px solid #bdc3c7; border-radius: 4px; font-size: 0.9rem;">
+                </div>
+                <div style="flex: 1; min-width: 130px;">
+                    <label style="display: block; font-size: 11px; font-weight: bold; color: #7f8c8d; margin-bottom: 4px;">TANGGAL SELESAI</label>
+                    <input type="date" id="owner-tgl-selesai" style="width: 100%; padding: 6px; border: 1px solid #bdc3c7; border-radius: 4px; font-size: 0.9rem;">
+                </div>
+                <div>
+                    <button onclick="prosesMuatLaporanOwner()" style="background: #ff4e50; color: white; border: none; padding: 8px 15px; border-radius: 4px; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 6px; font-size: 0.85rem; height: 35px;">
+                        <i class="fas fa-sync"></i> Filter
+                    </button>
+                </div>
+            </div>
+
+            <!-- Kartu Ringkasan Finansial -->
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px; margin-bottom: 15px;">
+                <div style="background: linear-gradient(135deg, #11998e, #38ef7d); color: white; padding: 15px; border-radius: 8px;">
+                    <div style="font-size: 11px; font-weight: bold; text-transform: uppercase; opacity: 0.9;">Total Omzet</div>
+                    <div id="owner-txt-omzet" style="font-size: 1.3rem; font-weight: bold; margin-top: 3px;">Rp 0</div>
+                </div>
+                <div style="background: linear-gradient(135deg, #ff9966, #ff5e62); color: white; padding: 15px; border-radius: 8px;">
+                    <div style="font-size: 11px; font-weight: bold; text-transform: uppercase; opacity: 0.9;">Total Transaksi</div>
+                    <div id="owner-txt-transaksi" style="font-size: 1.3rem; font-weight: bold; margin-top: 3px;">0 Nota</div>
+                </div>
+                <div style="background: linear-gradient(135deg, #00c6ff, #0072ff); color: white; padding: 15px; border-radius: 8px;">
+                    <div style="font-size: 11px; font-weight: bold; text-transform: uppercase; opacity: 0.9;">Rata-rata Nota</div>
+                    <div id="owner-txt-rata" style="font-size: 1.3rem; font-weight: bold; margin-top: 3px;">Rp 0</div>
+                </div>
+            </div>
+
+            <!-- Area Grafik dan Data Finansial -->
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 15px;">
+                <!-- Panel Grafik -->
+                <div style="background: white; padding: 12px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
+                    <h3 style="margin-top: 0; color: #2c3e50; font-size: 0.95rem; border-bottom: 1px solid #eee; padding-bottom: 8px;"><i class="fas fa-chart-bar"></i> Grafik Item Terlaris</h3>
+                    <div style="position: relative; height: 220px; width: 100%;">
+                        <canvas id="canvasGrafikMenu"></canvas>
+                    </div>
+                </div>
+
+                <!-- List Detail Penjualan Item -->
+                <div style="background: white; padding: 12px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
+                    <h3 style="margin-top: 0; color: #2c3e50; font-size: 0.95rem; border-bottom: 1px solid #eee; padding-bottom: 8px;"><i class="fas fa-list-ol"></i> Rincian Kuantitas Terjual</h3>
+                    <div id="owner-list-item" style="max-height: 220px; overflow-y: auto; font-size: 0.85rem;">
+                        <p style="color: #7f8c8d; text-align: center; padding-top: 20px;">Belum ada data filter.</p>
+                    </div>
+                </div>
+            </div>
+
         </div>
     </div>
 
