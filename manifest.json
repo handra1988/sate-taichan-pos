@@ -1,0 +1,15 @@
+{
+  "short_name": "Taichan Ria",
+  "name": "POS Sate Taichan Ria",
+  "icons": [
+    {
+      "src": "assets/icon.png",
+      "type": "image/png",
+      "sizes": "512x512"
+    }
+  ],
+  "start_url": "index.html",
+  "background_color": "#ffffff",
+  "display": "standalone",
+  "theme_color": "#ff4e50"
+}
