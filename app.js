@@ -22,7 +22,6 @@ let keranjang = [];
 let totalHarga = 0;
 let menuDipilih = null; 
 let semuaDataTransaksi = []; 
-let objekGrafikMenu = null; // Instans Chart.js global
 
 const namaBulanIndo = [
     "Januari", "Februari", "Maret", "April", "Mei", "Juni", 
@@ -122,16 +121,83 @@ window.hapusItem = function(index) {
     perbaruiTampilanKeranjang();
 };
 
-// 3. PROSES BAYAR & SIMPAN CLOUD
-window.prosesPembayaran = async function() {
+// ==========================================================
+// 3. LOGIKA INTERAKTIF KALKULATOR PEMBAYARAN & KEMBALIAN
+// ==========================================================
+window.bukaModalPembayaran = function() {
     if (keranjang.length === 0) {
         alert('Keranjang masih kosong, silakan pilih menu terlebih dahulu!');
+        return;
+    }
+
+    document.getElementById("pay-txt-tagihan").innerText = formatRupiah(totalHarga);
+    
+    const inputNominal = document.getElementById("pay-input-nominal");
+    inputNominal.value = ""; 
+    document.getElementById("pay-txt-kembalian").innerText = "Rp 0";
+
+    // Setup tombol pecahan otomatis pintar berdasarkan total harga
+    const containerPintasan = document.getElementById("pay-container-pintasan");
+    containerPintasan.innerHTML = "";
+
+    let pecahanPilihan = [totalHarga]; // Tambahkan opsi uang pas
+    [10000, 20000, 50000, 100000].forEach(p => {
+        if (p > totalHarga && !pecahanPilihan.includes(p)) {
+            pecahanPilihan.push(p);
+        }
+    });
+
+    pecahanPilihan.slice(0, 4).forEach(nominal => {
+        const btn = document.createElement("button");
+        btn.className = "btn-pecahan";
+        btn.innerText = nominal === totalHarga ? "Uang Pas" : formatRupiah(nominal);
+        btn.onclick = function() {
+            inputNominal.value = nominal;
+            hitungKembalianLive();
+        };
+        containerPintasan.appendChild(btn);
+    });
+
+    document.getElementById("popup-pembayaran").style.display = "flex";
+    inputNominal.focus();
+};
+
+window.tutupModalPembayaran = function() {
+    document.getElementById("popup-pembayaran").style.display = "none";
+};
+
+window.hitungKembalianLive = function() {
+    const inputNominal = document.getElementById("pay-input-nominal").value;
+    const uangDiterima = parseInt(inputNominal) || 0;
+    const btnSimpan = document.getElementById("pay-btn-eksekusi");
+    
+    const kembalian = uangDiterima - totalHarga;
+
+    if (kembalian < 0) {
+        document.getElementById("pay-txt-kembalian").innerText = "Uang Kurang!";
+        btnSimpan.disabled = true;
+        btnSimpan.style.opacity = 0.5;
+    } else {
+        document.getElementById("pay-txt-kembalian").innerText = formatRupiah(kembalian);
+        btnSimpan.disabled = false;
+        btnSimpan.style.opacity = 1;
+    }
+};
+
+window.prosesPembayaranAkhir = async function() {
+    const inputNominal = document.getElementById("pay-input-nominal").value;
+    const uangDiterima = parseInt(inputNominal) || 0;
+
+    if (uangDiterima < totalHarga) {
+        alert("Nominal pembayaran masih kurang dari total tagihan!");
         return;
     }
 
     const dataTransaksi = {
         items: keranjang,
         totalBayar: totalHarga,
+        uangDiterima: uangDiterima,
+        uangKembalian: uangDiterima - totalHarga,
         waktu: new Date(), 
         password: PIN_AKSES 
     };
@@ -142,24 +208,28 @@ window.prosesPembayaran = async function() {
         }
 
         await window.addDoc(window.collection(window.db, "transaksi"), dataTransaksi);
-        alert(`Transaksi sebesar ${formatRupiah(totalHarga)} SUKSES disimpan ke Cloud!`);
+        alert(`Transaksi SUKSES!\nTotal: ${formatRupiah(totalHarga)}\nKembalian: ${formatRupiah(dataTransaksi.uangKembalian)}`);
         
+        tutupModalPembayaran();
         keranjang = [];
         perbaruiTampilanKeranjang();
         
     } catch (error) {
         console.error("Gagal simpan transaksi: ", error);
-        alert("Akses simpan gagal! Periksa aturan Cloud Firestore Rules Anda.");
+        alert("Akses simpan gagal! Periksa koneksi internet Anda.");
     }
 };
 
-// 4. MONITOR LIVE DATA OMZET HARI INI & HARIAN
+// ==========================================================
+// 4. MONITOR LIVE DATA OMZET HARI INI, BULANAN & HARIAN
+// ==========================================================
 function aktifkanLiveMonitoring() {
     if (window.db && window.collection && window.onSnapshot) {
         const q = window.collection(window.db, "transaksi");
 
         window.onSnapshot(q, (snapshot) => {
             let totalOmzetHariIni = 0;
+            let penampungBulanan = {};
             let penampungHarian = {}; 
             semuaDataTransaksi = []; 
 
@@ -170,7 +240,6 @@ function aktifkanLiveMonitoring() {
                 const data = doc.data();
                 if (data.waktu && data.password === PIN_AKSES) {
                     const idDokumen = doc.id;
-                    
                     const tglTransaksi = data.waktu.toDate ? data.waktu.toDate() : new Date(data.waktu);
                     
                     const tahun = tglTransaksi.getFullYear();
@@ -189,10 +258,18 @@ function aktifkanLiveMonitoring() {
                         items: data.items
                     });
 
+                    // A. Hitung Omzet Hari Ini Live
                     if (formatTglTransaksi === hariIni) {
                         totalOmzetHariIni += data.totalBayar;
                     }
 
+                    // B. Akumulasi Laporan Bulanan
+                    if (!penampungBulanan[formatBulanTahun]) {
+                        penampungBulanan[formatBulanTahun] = 0;
+                    }
+                    penampungBulanan[formatBulanTahun] += data.totalBayar;
+
+                    // C. Akumulasi Laporan Harian
                     if (!penampungHarian[formatTglTransaksi]) {
                         penampungHarian[formatTglTransaksi] = 0;
                     }
@@ -205,6 +282,7 @@ function aktifkanLiveMonitoring() {
                 totalOmzetEl.innerText = formatRupiah(totalOmzetHariIni);
             }
 
+            renderTabelLaporanBulanan(penampungBulanan);
             renderTabelLaporanHarian(penampungHarian); 
 
         }, (error) => {
@@ -213,6 +291,37 @@ function aktifkanLiveMonitoring() {
     }
 }
 
+// Render Tabel Laporan Bulanan
+function renderTabelLaporanBulanan(dataBulanan) {
+    const tbody = document.getElementById('body-laporan-bulanan');
+    if (!tbody) return;
+    tbody.innerHTML = '';
+
+    const bulanUrut = Object.keys(dataBulanan).sort().reverse();
+
+    if (bulanUrut.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="3" style="text-align: center; color: #718096;">Belum ada data transaksi bulanan.</td></tr>`;
+        return;
+    }
+
+    bulanUrut.forEach(key => {
+        const [tahun, bulanStr] = key.split('-');
+        const namaBulan = namaBulanIndo[parseInt(bulanStr) - 1];
+        const totalOmzetBulanan = dataBulanan[key];
+
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td><strong>${namaBulan} ${tahun}</strong></td>
+            <td class="text-right" style="font-weight: 600; color: #10b981;">${formatRupiah(totalOmzetBulanan)}</td>
+            <td style="text-align: center;">
+                <button class="btn-detail" onclick="bukaDetailRiwayat('bulan', '${key}', '${namaBulan} ${tahun}')">Lihat Riwayat</button>
+            </td>
+        `;
+        tbody.appendChild(tr);
+    });
+}
+
+// Render Tabel Laporan Harian
 function renderTabelLaporanHarian(dataHarian) {
     const tbody = document.getElementById('body-laporan-harian');
     if (!tbody) return;
@@ -243,152 +352,17 @@ function renderTabelLaporanHarian(dataHarian) {
     });
 }
 
-// 5. SISTEM DASBOR ANALISIS PEMILIK (OWNER DASHBOARD)
-window.bukaVerifikasiOwner = function() {
-    const pin = prompt("Masukkan PIN Akses Pemilik untuk membuka analisis finansial:");
-    if (pin === PIN_AKSES) {
-        document.getElementById("modal-owner").style.display = "block";
-        
-        const hariIni = new Date().toISOString().split('T')[0];
-        document.getElementById("owner-tgl-mulai").value = hariIni;
-        document.getElementById("owner-tgl-selesai").value = hariIni;
-        
-        prosesMuatLaporanOwner();
-    } else if (pin !== null) {
-        alert("PIN Salah! Akses dasbor ditolak.");
-    }
-};
-
-window.tutupOwnerDashboard = function() {
-    document.getElementById("modal-owner").style.display = "none";
-};
-
-window.prosesMuatLaporanOwner = function() {
-    const tglMulaiStr = document.getElementById("owner-tgl-mulai").value;
-    const tglSelesaiStr = document.getElementById("owner-tgl-selesai").value;
-    
-    if (!tglMulaiStr || !tglSelesaiStr) {
-        alert("Pilih tanggal mulai dan selesai terlebih dahulu!");
-        return;
-    }
-
-    const tglMulai = new Date(tglMulaiStr + "T00:00:00");
-    const tglSelesai = new Date(tglSelesaiStr + "T23:59:59");
-
-    let totalOmzet = 0;
-    let totalNota = 0;
-    let kuantitasMenu = {};
-
-    semuaDataTransaksi.forEach(t => {
-        if (t.waktu >= tglMulai && t.waktu <= tglSelesai) {
-            totalOmzet += t.totalBayar;
-            totalNota++;
-
-            if (t.items && Array.isArray(t.items)) {
-                t.items.forEach(item => {
-                    if (kuantitasMenu[item.nama]) {
-                        kuantitasMenu[item.nama] += item.jumlah;
-                    } else {
-                        kuantitasMenu[item.nama] = item.jumlah;
-                    }
-                });
-            }
-        }
-    });
-
-    let rataRataNota = totalNota > 0 ? Math.round(totalOmzet / totalNota) : 0;
-
-    document.getElementById("owner-txt-omzet").innerText = formatRupiah(totalOmzet);
-    document.getElementById("owner-txt-transaksi").innerText = totalNota + " Nota";
-    document.getElementById("owner-txt-rata").innerText = formatRupiah(rataRataNota);
-
-    renderListKuantitasOwner(kuantitasMenu);
-    renderGrafikBatangOwner(kuantitasMenu);
-};
-
-function renderListKuantitasOwner(dataMenu) {
-    const container = document.getElementById("owner-list-item");
-    container.innerHTML = "";
-
-    const sortedMenu = Object.entries(dataMenu).sort((a, b) => b[1] - a[1]);
-
-    if (sortedMenu.length === 0) {
-        container.innerHTML = `<p style="color: #7f8c8d; text-align: center; padding-top: 20px;">Tidak ada penjualan.</p>`;
-        return;
-    }
-
-    let html = `<table style="width:100%; border-collapse: collapse; text-align: left;">
-        <tr style="border-bottom: 2px solid #ddd; color: #4a5568; font-weight:bold;">
-            <th style="padding: 6px 0;">Item Menu</th>
-            <th style="padding: 6px 0; text-align: right;">Kuantitas</th>
-        </tr>`;
-
-    sortedMenu.forEach(([nama, qty]) => {
-        html += `<tr style="border-bottom: 1px solid #eee;">
-            <td style="padding: 6px 0; color:#4a5568;">${nama}</td>
-            <td style="padding: 6px 0; text-align: right; font-weight: bold; color: #ff4e50;">${qty} Qty</td>
-        </tr>`;
-    });
-
-    html += `</table>`;
-    container.innerHTML = html;
-}
-
-function renderGrafikBatangOwner(dataMenu) {
-    const ctx = document.getElementById('canvasGrafikMenu').getContext('2d');
-    
-    if (objekGrafikMenu) {
-        objekGrafikMenu.destroy();
-    }
-
-    const labels = Object.keys(dataMenu);
-    const values = Object.values(dataMenu);
-
-    if (labels.length === 0) {
-        return; 
-    }
-
-    objekGrafikMenu = new Chart(ctx, {
-        type: 'bar',
-        data: {
-            labels: labels,
-            datasets: [{
-                label: 'Item Terjual (Qty)',
-                data: values,
-                backgroundColor: 'rgba(255, 78, 80, 0.6)',
-                borderColor: 'rgba(255, 78, 80, 1)',
-                borderWidth: 1,
-                borderRadius: 4
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            scales: {
-                y: {
-                    beginAtZero: true,
-                    ticks: { stepSize: 1 }
-                },
-                x: {
-                    display: false 
-                }
-            },
-            plugins: {
-                legend: { display: false }
-            }
-        }
-    });
-}
-
 // ==========================================================
-// KONTROL POPUP DETAIL RIWAYAT & HAPUS DATA CLOUD
+// KONTROL POPUP DETAIL RIWAYAT & HAPUS DATA CLOUD (UNIVERSAL)
 // ==========================================================
 window.bukaDetailRiwayat = function(tipe, kunciPencarian, labelJudul) {
     document.getElementById('modal-detail-title').innerText = `Riwayat: ${labelJudul}`;
     const listRiwayat = document.getElementById('list-riwayat-transaksi');
     listRiwayat.innerHTML = '';
 
-    const transaksiFilter = semuaDataTransaksi.filter(t => t.hariKey === kunciPencarian).sort((a, b) => b.waktu - a.waktu); 
+    const transaksiFilter = semuaDataTransaksi.filter(t => {
+        return tipe === 'bulan' ? t.bulanKey === kunciPencarian : t.hariKey === kunciPencarian;
+    }).sort((a, b) => b.waktu - a.waktu); 
 
     if (transaksiFilter.length === 0) {
         listRiwayat.innerHTML = '<li style="text-align:center;color:#999;">Tidak ada transaksi.</li>';
@@ -423,6 +397,7 @@ window.tutupModalDetail = function() {
     document.getElementById('popup-detail').style.display = 'none';
 };
 
+// Eksekusi Hapus Data Firebase
 window.hapusTransaksiCloud = async function(idDokumen, nominal) {
     const konfirmasiAwal = confirm(`Apakah Anda yakin ingin MENGHAPUS DATA transaksi sebesar ${formatRupiah(nominal)} ini?`);
     if (!konfirmasiAwal) return;
