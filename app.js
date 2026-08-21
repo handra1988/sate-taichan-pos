@@ -17,7 +17,7 @@ const daftarMenu = [
     { id: "r2", nama: "Risol Bolognese", harga: 3500 }
 ];
 
-const PIN_AKSES = "TAICHANRIA2026"; 
+const PIN_AKSES = "KASIR123"; 
 let keranjang = [];
 let totalHarga = 0;
 let menuDipilih = null; 
