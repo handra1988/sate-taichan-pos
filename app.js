@@ -1,312 +1,24 @@
 // ==========================================================
-// SISTEM LOGIN POS
+// SATE TAICHAN RIA POS v2
+// Dashboard + HPP + Laba
 // ==========================================================
 
-// Password untuk membuka aplikasi POS
-// Opsi A: password berada di sisi client
+
+// ==========================================================
+// 1. PASSWORD & PIN
+// ==========================================================
+
+// Password untuk membuka aplikasi
 const PASSWORD_LOGIN = "KASIRRIA2026";
 
-// PIN lama untuk identifikasi transaksi Firebase.
-// JANGAN DIUBAH agar transaksi lama tetap terbaca.
+// PIN lama.
+// JANGAN DIUBAH karena transaksi lama Firebase
+// menggunakan PIN ini.
 const PIN_AKSES = "KASIR123";
 
 
 // ==========================================================
-// STATUS LOGIN
-// ==========================================================
-
-let sudahLogin = false;
-
-
-// Cek status login saat aplikasi dibuka
-function cekStatusLogin() {
-
-    const statusLogin =
-        sessionStorage.getItem("sateTaichanRIA_login");
-
-    if (statusLogin === "true") {
-
-        sudahLogin = true;
-
-        tampilkanPOS();
-
-    } else {
-
-        sudahLogin = false;
-
-        tampilkanLogin();
-
-    }
-}
-
-
-// Tampilkan halaman login
-function tampilkanLogin() {
-
-    const loginScreen =
-        document.getElementById("login-screen");
-
-    const app =
-        document.getElementById("app");
-
-    if (loginScreen) {
-        loginScreen.style.display = "flex";
-    }
-
-    if (app) {
-        app.style.display = "none";
-    }
-
-    const input =
-        document.getElementById("login-password");
-
-    if (input) {
-
-        setTimeout(() => {
-            input.focus();
-        }, 300);
-
-    }
-}
-
-
-// Tampilkan aplikasi POS
-function tampilkanPOS() {
-
-    sudahLogin = true;
-
-    const loginScreen =
-        document.getElementById("login-screen");
-
-    const app =
-        document.getElementById("app");
-
-    if (loginScreen) {
-        loginScreen.style.display = "none";
-    }
-
-    if (app) {
-        app.style.display = "block";
-    }
-}
-
-
-// ==========================================================
-// PROSES LOGIN
-// ==========================================================
-
-function prosesLogin() {
-
-    const input =
-        document.getElementById("login-password");
-
-    const error =
-        document.getElementById("login-error");
-
-    if (!input) return;
-
-
-    const password =
-        input.value;
-
-
-    if (password === PASSWORD_LOGIN) {
-
-        sudahLogin = true;
-
-        sessionStorage.setItem(
-            "sateTaichanRIA_login",
-            "true"
-        );
-
-        if (error) {
-            error.style.display = "none";
-        }
-
-        input.value = "";
-
-        tampilkanPOS();
-
-        // Jalankan sistem POS setelah login berhasil
-        inisialisasiPOS();
-
-    } else {
-
-        if (error) {
-
-            error.style.display = "block";
-
-            // Reset animasi error
-            error.style.animation = "none";
-
-            void error.offsetWidth;
-
-            error.style.animation =
-                "errorShake 0.3s ease";
-
-        }
-
-        input.value = "";
-
-        input.focus();
-
-    }
-
-}
-
-
-// ==========================================================
-// TAMPILKAN / SEMBUNYIKAN PASSWORD
-// ==========================================================
-
-function togglePassword() {
-
-    const input =
-        document.getElementById("login-password");
-
-    const button =
-        document.getElementById("toggle-password");
-
-    if (!input || !button) return;
-
-
-    if (input.type === "password") {
-
-        input.type = "text";
-
-        button.innerText = "🙈";
-
-        button.setAttribute(
-            "aria-label",
-            "Sembunyikan password"
-        );
-
-    } else {
-
-        input.type = "password";
-
-        button.innerText = "👁️";
-
-        button.setAttribute(
-            "aria-label",
-            "Tampilkan password"
-        );
-
-    }
-
-}
-
-
-// ==========================================================
-// KUNCI POS
-// ==========================================================
-
-window.kunciPOS = function() {
-
-    const yakin =
-        confirm(
-            "Kunci POS sekarang?\n\nAnda perlu memasukkan password kembali untuk membuka POS."
-        );
-
-    if (!yakin) return;
-
-
-    sessionStorage.removeItem(
-        "sateTaichanRIA_login"
-    );
-
-    sudahLogin = false;
-
-
-    // Tutup modal jika sedang terbuka
-    const modalQty =
-        document.getElementById("popup-qty");
-
-    const modalBayar =
-        document.getElementById("popup-pembayaran");
-
-    const modalDetail =
-        document.getElementById("popup-detail");
-
-
-    if (modalQty) {
-        modalQty.style.display = "none";
-    }
-
-    if (modalBayar) {
-        modalBayar.style.display = "none";
-    }
-
-    if (modalDetail) {
-        modalDetail.style.display = "none";
-    }
-
-
-    tampilkanLogin();
-
-};
-
-
-// ==========================================================
-// EVENT LOGIN
-// ==========================================================
-
-function pasangEventLogin() {
-
-    const buttonLogin =
-        document.getElementById("btn-login");
-
-    const inputPassword =
-        document.getElementById("login-password");
-
-    const toggleButton =
-        document.getElementById("toggle-password");
-
-
-    if (buttonLogin) {
-
-        buttonLogin.addEventListener(
-            "click",
-            prosesLogin
-        );
-
-    }
-
-
-    if (toggleButton) {
-
-        toggleButton.addEventListener(
-            "click",
-            togglePassword
-        );
-
-    }
-
-
-    if (inputPassword) {
-
-        inputPassword.addEventListener(
-            "keydown",
-            function(event) {
-
-                if (event.key === "Enter") {
-
-                    event.preventDefault();
-
-                    prosesLogin();
-
-                }
-
-            }
-        );
-
-    }
-
-}
-
-
-// ==========================================================
-// 1. DATA MASTER MENU
+// 2. MASTER MENU
 // ==========================================================
 
 const daftarMenu = [
@@ -392,6 +104,10 @@ const daftarMenu = [
 ];
 
 
+// ==========================================================
+// 3. VARIABEL GLOBAL
+// ==========================================================
+
 let keranjang = [];
 
 let totalHarga = 0;
@@ -400,11 +116,41 @@ let menuDipilih = null;
 
 let semuaDataTransaksi = [];
 
-let posSudahDiinisialisasi = false;
+let unsubscribeFirebase = null;
 
 
 // ==========================================================
-// NAMA BULAN
+// 4. HPP DEFAULT
+// ==========================================================
+
+// Sengaja 0.
+// Anda akan memasukkan HPP sebenarnya dari menu HPP.
+
+const HPP_DEFAULT = {
+
+    p1: 0,
+    p2: 0,
+    p3: 0,
+
+    a1: 0,
+    a2: 0,
+
+    s1: 0,
+    s2: 0,
+    s3: 0,
+
+    ss1: 0,
+    ss2: 0,
+    ss3: 0,
+
+    r1: 0,
+    r2: 0
+
+};
+
+
+// ==========================================================
+// 5. BULAN INDONESIA
 // ==========================================================
 
 const namaBulanIndo = [
@@ -426,33 +172,370 @@ const namaBulanIndo = [
 
 
 // ==========================================================
-// FORMAT RUPIAH
+// 6. FORMAT RUPIAH
 // ==========================================================
 
 function formatRupiah(angka) {
 
-    return "Rp " +
-        Number(angka || 0)
-            .toLocaleString("id-ID");
+    angka = Number(angka) || 0;
+
+    return "Rp " + angka.toLocaleString("id-ID");
 
 }
 
 
 // ==========================================================
-// 2. RENDER MENU
+// 7. HPP
+// ==========================================================
+
+function ambilHPP() {
+
+    try {
+
+        const data =
+            localStorage.getItem(
+                "sateTaichanRIA_HPP"
+            );
+
+        if (!data) {
+
+            return {
+                ...HPP_DEFAULT
+            };
+
+        }
+
+        return {
+            ...HPP_DEFAULT,
+            ...JSON.parse(data)
+        };
+
+    } catch (error) {
+
+        console.error(
+            "Gagal membaca HPP:",
+            error
+        );
+
+        return {
+            ...HPP_DEFAULT
+        };
+
+    }
+
+}
+
+
+function getHPPMenu(menu) {
+
+    const hpp = ambilHPP();
+
+    return Number(
+        hpp[menu.id] || 0
+    );
+
+}
+
+
+function hitungHPPItem(item) {
+
+    const menu = daftarMenu.find(
+        m => m.nama === item.nama
+    );
+
+    if (!menu) {
+
+        return 0;
+
+    }
+
+    return getHPPMenu(menu) *
+        Number(item.jumlah || 0);
+
+}
+
+
+// ==========================================================
+// 8. LOGIN
+// ==========================================================
+
+function cekStatusLogin() {
+
+    const sudahLogin =
+        sessionStorage.getItem(
+            "sateTaichanRIA_login"
+        );
+
+    if (sudahLogin === "true") {
+
+        tampilkanAplikasi();
+
+    } else {
+
+        tampilkanLogin();
+
+    }
+
+}
+
+
+function tampilkanLogin() {
+
+    const login =
+        document.getElementById(
+            "login-screen"
+        );
+
+    const app =
+        document.getElementById("app");
+
+    if (login) {
+
+        login.style.display = "flex";
+
+    }
+
+    if (app) {
+
+        app.classList.add("app-hidden");
+
+    }
+
+}
+
+
+function tampilkanAplikasi() {
+
+    const login =
+        document.getElementById(
+            "login-screen"
+        );
+
+    const app =
+        document.getElementById("app");
+
+    if (login) {
+
+        login.style.display = "none";
+
+    }
+
+    if (app) {
+
+        app.classList.remove(
+            "app-hidden"
+        );
+
+    }
+
+    inisialisasiAplikasi();
+
+}
+
+
+window.loginPOS = function () {
+
+    const input =
+        document.getElementById(
+            "login-password"
+        );
+
+    const password =
+        input.value.trim();
+
+    const error =
+        document.getElementById(
+            "login-error"
+        );
+
+    if (password === PASSWORD_LOGIN) {
+
+        sessionStorage.setItem(
+            "sateTaichanRIA_login",
+            "true"
+        );
+
+        if (error) {
+
+            error.style.display = "none";
+
+        }
+
+        tampilkanAplikasi();
+
+    } else {
+
+        if (error) {
+
+            error.style.display = "block";
+
+        }
+
+        input.value = "";
+
+        input.focus();
+
+    }
+
+};
+
+
+window.togglePassword = function () {
+
+    const input =
+        document.getElementById(
+            "login-password"
+        );
+
+    if (!input) return;
+
+    if (input.type === "password") {
+
+        input.type = "text";
+
+    } else {
+
+        input.type = "password";
+
+    }
+
+};
+
+
+window.kunciPOS = function () {
+
+    sessionStorage.removeItem(
+        "sateTaichanRIA_login"
+    );
+
+    if (unsubscribeFirebase) {
+
+        unsubscribeFirebase();
+
+        unsubscribeFirebase = null;
+
+    }
+
+    window.location.reload();
+
+};
+
+
+// Enter untuk login
+document.addEventListener(
+    "keydown",
+    function (event) {
+
+        if (
+            event.key === "Enter" &&
+            document.getElementById(
+                "login-screen"
+            )?.style.display !== "none"
+        ) {
+
+            loginPOS();
+
+        }
+
+    }
+);
+
+
+// ==========================================================
+// 9. NAVIGASI
+// ==========================================================
+
+window.bukaHalaman = function (namaHalaman) {
+
+    const pages =
+        document.querySelectorAll(
+            ".page"
+        );
+
+    pages.forEach(page => {
+
+        page.classList.remove(
+            "active-page"
+        );
+
+    });
+
+
+    const target =
+        document.getElementById(
+            "page-" + namaHalaman
+        );
+
+    if (target) {
+
+        target.classList.add(
+            "active-page"
+        );
+
+    }
+
+
+    const navItems =
+        document.querySelectorAll(
+            ".nav-item"
+        );
+
+    navItems.forEach(item => {
+
+        item.classList.remove(
+            "active"
+        );
+
+        if (
+            item.dataset.page ===
+            namaHalaman
+        ) {
+
+            item.classList.add(
+                "active"
+            );
+
+        }
+
+    });
+
+
+    window.scrollTo({
+        top: 0,
+        behavior: "smooth"
+    });
+
+
+    if (namaHalaman === "dashboard") {
+
+        renderDashboard();
+
+    }
+
+
+    if (namaHalaman === "hpp") {
+
+        renderHPP();
+
+    }
+
+};
+
+
+// ==========================================================
+// 10. RENDER MENU
 // ==========================================================
 
 function renderTombolMenu() {
 
-    const containerMenu =
+    const container =
         document.getElementById(
             "container-menu"
         );
 
-    if (!containerMenu) return;
+    if (!container) return;
 
-
-    containerMenu.innerHTML = "";
+    container.innerHTML = "";
 
 
     daftarMenu.forEach(menu => {
@@ -460,44 +543,25 @@ function renderTombolMenu() {
         const tombol =
             document.createElement("button");
 
-
         tombol.innerHTML = `
 
-            <div
-                style="
-                    font-size:0.9rem;
-                    margin-bottom:4px;
-                    text-align:center;
-                    line-height:1.2;
-                "
-            >
+            <span class="menu-name">
                 ${menu.nama}
-            </div>
+            </span>
 
-            <div
-                style="
-                    color:#ff4e50;
-                    font-size:0.85rem;
-                    font-weight:700;
-                "
-            >
+            <span class="menu-price">
                 ${formatRupiah(menu.harga)}
-            </div>
+            </span>
 
         `;
 
+        tombol.onclick = function () {
 
-        tombol.onclick =
-            function() {
+            bukaModalJumlah(menu);
 
-                bukaModalJumlah(menu);
+        };
 
-            };
-
-
-        containerMenu.appendChild(
-            tombol
-        );
+        container.appendChild(tombol);
 
     });
 
@@ -505,26 +569,35 @@ function renderTombolMenu() {
 
 
 // ==========================================================
-// MODAL JUMLAH
+// 11. MODAL JUMLAH
 // ==========================================================
 
 function bukaModalJumlah(menu) {
 
-    if (!sudahLogin) return;
-
-
     menuDipilih = menu;
 
+    const title =
+        document.getElementById(
+            "modal-menu-title"
+        );
 
-    document.getElementById(
-        "modal-menu-title"
-    ).innerText = menu.nama;
+    const qty =
+        document.getElementById(
+            "modal-qty"
+        );
 
+    if (title) {
 
-    document.getElementById(
-        "modal-qty"
-    ).value = 1;
+        title.innerText =
+            menu.nama;
 
+    }
+
+    if (qty) {
+
+        qty.value = 1;
+
+    }
 
     document.getElementById(
         "popup-qty"
@@ -533,43 +606,34 @@ function bukaModalJumlah(menu) {
 }
 
 
-window.ubahQty = function(nilai) {
+window.ubahQty = function (nilai) {
 
-    if (!sudahLogin) return;
-
-
-    const inputQty =
+    const input =
         document.getElementById(
             "modal-qty"
         );
 
+    let qty =
+        parseInt(input.value) || 1;
 
-    let qtySekarang =
-        parseInt(inputQty.value) || 1;
+    qty += nilai;
 
+    if (qty < 1) {
 
-    qtySekarang += nilai;
-
-
-    if (qtySekarang < 1) {
-
-        qtySekarang = 1;
+        qty = 1;
 
     }
 
-
-    inputQty.value =
-        qtySekarang;
+    input.value = qty;
 
 };
 
 
-window.tutupModal = function() {
+window.tutupModal = function () {
 
     document.getElementById(
         "popup-qty"
     ).style.display = "none";
-
 
     menuDipilih = null;
 
@@ -577,14 +641,12 @@ window.tutupModal = function() {
 
 
 window.konfirmasiTambahKeKeranjang =
-    function() {
-
-        if (!sudahLogin) return;
+    function () {
 
         if (!menuDipilih) return;
 
 
-        const qtyInput =
+        const qty =
             parseInt(
                 document.getElementById(
                     "modal-qty"
@@ -602,21 +664,19 @@ window.konfirmasiTambahKeKeranjang =
 
         if (itemSama) {
 
-            itemSama.jumlah +=
-                qtyInput;
+            itemSama.jumlah += qty;
 
         } else {
 
             keranjang.push({
 
-                nama:
-                    menuDipilih.nama,
+                id: menuDipilih.id,
 
-                harga:
-                    menuDipilih.harga,
+                nama: menuDipilih.nama,
 
-                jumlah:
-                    qtyInput
+                harga: menuDipilih.harga,
+
+                jumlah: qty
 
             });
 
@@ -631,45 +691,54 @@ window.konfirmasiTambahKeKeranjang =
 
 
 // ==========================================================
-// TAMPILAN KERANJANG
+// 12. KERANJANG
 // ==========================================================
 
 function perbaruiTampilanKeranjang() {
 
-    const daftarKeranjangEl =
+    const list =
         document.getElementById(
             "daftar-keranjang"
         );
 
-    const totalHargaEl =
+    const totalEl =
         document.getElementById(
             "total-harga"
         );
 
+    const empty =
+        document.getElementById(
+            "cart-empty"
+        );
 
-    if (
-        !daftarKeranjangEl ||
-        !totalHargaEl
-    ) {
-        return;
-    }
+    const jumlahEl =
+        document.getElementById(
+            "jumlah-item-keranjang"
+        );
 
 
-    daftarKeranjangEl.innerHTML = "";
+    if (!list || !totalEl) return;
+
+
+    list.innerHTML = "";
 
     totalHarga = 0;
+
+    let totalItem = 0;
 
 
     keranjang.forEach(
         (item, index) => {
 
-            const subTotal =
-                item.harga *
-                item.jumlah;
+            const subtotal =
+                Number(item.harga) *
+                Number(item.jumlah);
 
 
-            totalHarga +=
-                subTotal;
+            totalHarga += subtotal;
+
+            totalItem +=
+                Number(item.jumlah);
 
 
             const li =
@@ -682,50 +751,28 @@ function perbaruiTampilanKeranjang() {
 
                 <div>
 
-                    <strong
-                        style="
-                            color:#2d3748;
-                        "
-                    >
+                    <div class="cart-item-name">
                         ${item.nama}
-                    </strong>
+                    </div>
 
-                    <br>
-
-                    <span
-                        style="
-                            color:#718096;
-                            font-size:0.85rem;
-                        "
-                    >
-                        ${item.jumlah}x
-                        @
+                    <div class="cart-item-detail">
+                        ${item.jumlah}x @
                         ${formatRupiah(item.harga)}
-                    </span>
+                    </div>
 
                 </div>
 
-                <div
-                    style="
-                        display:flex;
-                        align-items:center;
-                        gap:12px;
-                    "
-                >
+                <div class="cart-item-right">
 
-                    <span
-                        style="
-                            font-weight:600;
-                            color:#4a5568;
-                        "
-                    >
-                        ${formatRupiah(subTotal)}
+                    <span class="cart-subtotal">
+                        ${formatRupiah(subtotal)}
                     </span>
 
                     <button
+                        class="btn-delete-item"
                         onclick="hapusItem(${index})"
                     >
-                        X
+                        ×
                     </button>
 
                 </div>
@@ -733,50 +780,91 @@ function perbaruiTampilanKeranjang() {
             `;
 
 
-            daftarKeranjangEl.appendChild(
-                li
-            );
+            list.appendChild(li);
 
         }
     );
 
 
-    totalHargaEl.innerText =
+    totalEl.innerText =
         formatRupiah(totalHarga);
+
+
+    if (jumlahEl) {
+
+        jumlahEl.innerText =
+            totalItem +
+            (totalItem === 1
+                ? " item"
+                : " item");
+
+    }
+
+
+    if (empty) {
+
+        empty.style.display =
+            keranjang.length === 0
+                ? "block"
+                : "none";
+
+    }
 
 }
 
 
-window.hapusItem = function(index) {
+window.hapusItem = function (index) {
 
-    if (!sudahLogin) return;
-
-
-    keranjang.splice(
-        index,
-        1
-    );
-
+    keranjang.splice(index, 1);
 
     perbaruiTampilanKeranjang();
 
 };
 
 
+window.kosongkanKeranjang =
+    function () {
+
+        if (
+            keranjang.length === 0
+        ) {
+
+            return;
+
+        }
+
+
+        const yakin =
+            confirm(
+                "Kosongkan semua isi keranjang?"
+            );
+
+
+        if (!yakin) return;
+
+
+        keranjang = [];
+
+        totalHarga = 0;
+
+        perbaruiTampilanKeranjang();
+
+    };
+
+
 // ==========================================================
-// 3. PEMBAYARAN
+// 13. PEMBAYARAN
 // ==========================================================
 
 window.bukaModalPembayaran =
-    function() {
+    function () {
 
-        if (!sudahLogin) return;
-
-
-        if (keranjang.length === 0) {
+        if (
+            keranjang.length === 0
+        ) {
 
             alert(
-                "Keranjang masih kosong, silakan pilih menu terlebih dahulu!"
+                "Keranjang masih kosong."
             );
 
             return;
@@ -790,13 +878,12 @@ window.bukaModalPembayaran =
             formatRupiah(totalHarga);
 
 
-        const inputNominal =
+        const input =
             document.getElementById(
                 "pay-input-nominal"
             );
 
-
-        inputNominal.value = "";
+        input.value = "";
 
 
         document.getElementById(
@@ -805,34 +892,38 @@ window.bukaModalPembayaran =
             "Rp 0";
 
 
-        const containerPintasan =
+        const container =
             document.getElementById(
                 "pay-container-pintasan"
             );
 
-
-        containerPintasan.innerHTML =
-            "";
+        container.innerHTML = "";
 
 
-        let pecahanPilihan =
-            [totalHarga];
+        let pilihan = [
+            totalHarga
+        ];
 
 
         [
             10000,
             20000,
             50000,
-            100000
+            100000,
+            200000
         ].forEach(
-            p => {
+            nominal => {
 
                 if (
-                    p > totalHarga &&
-                    !pecahanPilihan.includes(p)
+                    nominal >= totalHarga &&
+                    !pilihan.includes(
+                        nominal
+                    )
                 ) {
 
-                    pecahanPilihan.push(p);
+                    pilihan.push(
+                        nominal
+                    );
 
                 }
 
@@ -840,54 +931,52 @@ window.bukaModalPembayaran =
         );
 
 
-        pecahanPilihan
-            .slice(0, 4)
-            .forEach(
-                nominal => {
+        pilihan
+            .slice(0, 6)
+            .forEach(nominal => {
 
-                    const btn =
-                        document.createElement(
-                            "button"
+                const button =
+                    document.createElement(
+                        "button"
+                    );
+
+                button.className =
+                    "btn-pecahan";
+
+
+                button.innerText =
+                    nominal === totalHarga
+                        ? "Uang Pas"
+                        : formatRupiah(
+                            nominal
                         );
 
 
-                    btn.className =
-                        "btn-pecahan";
+                button.onclick =
+                    function () {
+
+                        input.value =
+                            nominal;
+
+                        hitungKembalianLive();
+
+                    };
 
 
-                    btn.innerText =
-                        nominal === totalHarga
-                            ? "Uang Pas"
-                            : formatRupiah(nominal);
+                container.appendChild(
+                    button
+                );
 
-
-                    btn.onclick =
-                        function() {
-
-                            inputNominal.value =
-                                nominal;
-
-                            hitungKembalianLive();
-
-                        };
-
-
-                    containerPintasan.appendChild(
-                        btn
-                    );
-
-                }
-            );
+            });
 
 
         document.getElementById(
             "popup-pembayaran"
-        ).style.display =
-            "flex";
+        ).style.display = "flex";
 
 
         setTimeout(
-            () => inputNominal.focus(),
+            () => input.focus(),
             100
         );
 
@@ -895,101 +984,96 @@ window.bukaModalPembayaran =
 
 
 window.tutupModalPembayaran =
-    function() {
+    function () {
 
         document.getElementById(
             "popup-pembayaran"
-        ).style.display =
-            "none";
+        ).style.display = "none";
 
     };
 
 
 window.hitungKembalianLive =
-    function() {
+    function () {
 
-        if (!sudahLogin) return;
-
-
-        const inputNominal =
+        const input =
             document.getElementById(
                 "pay-input-nominal"
-            ).value;
+            );
 
 
-        const uangDiterima =
-            parseInt(inputNominal) || 0;
+        const uang =
+            parseInt(input.value) || 0;
 
 
-        const btnSimpan =
+        const kembalian =
+            uang - totalHarga;
+
+
+        const hasil =
+            document.getElementById(
+                "pay-txt-kembalian"
+            );
+
+
+        const button =
             document.getElementById(
                 "pay-btn-eksekusi"
             );
 
 
-        const kembalian =
-            uangDiterima -
-            totalHarga;
-
-
         if (kembalian < 0) {
 
-            document.getElementById(
-                "pay-txt-kembalian"
-            ).innerText =
+            hasil.innerText =
                 "Uang Kurang!";
 
+            hasil.style.color =
+                "#dc2626";
 
-            btnSimpan.disabled =
-                true;
+            button.disabled = true;
 
-
-            btnSimpan.style.opacity =
-                0.5;
+            button.style.opacity =
+                "0.5";
 
         } else {
 
-            document.getElementById(
-                "pay-txt-kembalian"
-            ).innerText =
-                formatRupiah(kembalian);
+            hasil.innerText =
+                formatRupiah(
+                    kembalian
+                );
 
+            hasil.style.color =
+                "#059669";
 
-            btnSimpan.disabled =
-                false;
+            button.disabled = false;
 
-
-            btnSimpan.style.opacity =
-                1;
+            button.style.opacity =
+                "1";
 
         }
 
     };
 
 
+// ==========================================================
+// 14. SIMPAN TRANSAKSI
+// ==========================================================
+
 window.prosesPembayaranAkhir =
-    async function() {
+    async function () {
 
-        if (!sudahLogin) return;
-
-
-        const inputNominal =
-            document.getElementById(
-                "pay-input-nominal"
-            ).value;
-
-
-        const uangDiterima =
-            parseInt(inputNominal) || 0;
+        const uang =
+            parseInt(
+                document.getElementById(
+                    "pay-input-nominal"
+                ).value
+            ) || 0;
 
 
-        if (
-            uangDiterima <
-            totalHarga
-        ) {
+        if (uang < totalHarga) {
 
             alert(
-                "Nominal pembayaran masih kurang dari total tagihan!"
+                "Nominal pembayaran masih kurang."
             );
 
             return;
@@ -999,26 +1083,31 @@ window.prosesPembayaranAkhir =
 
         const dataTransaksi = {
 
-            items:
-                keranjang,
+            items: keranjang.map(
+                item => ({
 
-            totalBayar:
-                totalHarga,
+                    id: item.id,
 
-            uangDiterima:
-                uangDiterima,
+                    nama: item.nama,
+
+                    harga: item.harga,
+
+                    jumlah: item.jumlah
+
+                })
+            ),
+
+            totalBayar: totalHarga,
+
+            uangDiterima: uang,
 
             uangKembalian:
-                uangDiterima -
-                totalHarga,
+                uang - totalHarga,
 
-            waktu:
-                new Date(),
+            waktu: new Date(),
 
-            // Tetap menggunakan PIN lama
-            // agar data lama tetap kompatibel
-            password:
-                PIN_AKSES
+            // Jangan ubah.
+            password: PIN_AKSES
 
         };
 
@@ -1032,7 +1121,7 @@ window.prosesPembayaranAkhir =
             ) {
 
                 throw new Error(
-                    "Koneksi Firebase belum siap."
+                    "Firebase belum siap."
                 );
 
             }
@@ -1051,13 +1140,16 @@ window.prosesPembayaranAkhir =
 
 
             alert(
-
-                `Transaksi SUKSES!\n` +
-                `Total: ${formatRupiah(totalHarga)}\n` +
-                `Kembalian: ${formatRupiah(
-                    dataTransaksi.uangKembalian
-                )}`
-
+                "Transaksi BERHASIL!\n\n" +
+                "Total: " +
+                formatRupiah(
+                    totalHarga
+                ) +
+                "\nKembalian: " +
+                formatRupiah(
+                    dataTransaksi
+                        .uangKembalian
+                )
             );
 
 
@@ -1066,6 +1158,7 @@ window.prosesPembayaranAkhir =
 
             keranjang = [];
 
+            totalHarga = 0;
 
             perbaruiTampilanKeranjang();
 
@@ -1073,13 +1166,14 @@ window.prosesPembayaranAkhir =
         } catch (error) {
 
             console.error(
-                "Gagal simpan transaksi:",
+                "Gagal menyimpan transaksi:",
                 error
             );
 
 
             alert(
-                "Akses simpan gagal! Periksa koneksi internet Anda."
+                "Gagal menyimpan transaksi.\n\n" +
+                "Periksa koneksi internet."
             );
 
         }
@@ -1088,237 +1182,56 @@ window.prosesPembayaranAkhir =
 
 
 // ==========================================================
-// 4. MONITOR FIREBASE
+// 15. UTILITAS TANGGAL
 // ==========================================================
 
-function aktifkanLiveMonitoring() {
+function tanggalKey(date) {
 
-    if (
-        !sudahLogin ||
-        !window.db ||
-        !window.collection ||
-        !window.onSnapshot
-    ) {
-        return;
-    }
+    return (
 
+        date.getFullYear() +
+        "-" +
+        String(
+            date.getMonth() + 1
+        ).padStart(2, "0") +
+        "-" +
+        String(
+            date.getDate()
+        ).padStart(2, "0")
 
-    const q =
-        window.collection(
-            window.db,
-            "transaksi"
-        );
+    );
 
+}
 
-    window.onSnapshot(
 
-        q,
+function bulanKey(date) {
 
-        (snapshot) => {
+    return (
 
-            let totalOmzetHariIni =
-                0;
+        date.getFullYear() +
+        "-" +
+        String(
+            date.getMonth() + 1
+        ).padStart(2, "0")
 
-            let penampungBulanan =
-                {};
+    );
 
-            let penampungHarian =
-                {};
+}
 
-            semuaDataTransaksi =
-                [];
 
+function labelTanggal(date) {
 
-            const tgl =
-                new Date();
+    return (
 
-
-            const hariIni =
-                `${tgl.getFullYear()}-` +
-                `${String(
-                    tgl.getMonth() + 1
-                ).padStart(2, "0")}-` +
-                `${String(
-                    tgl.getDate()
-                ).padStart(2, "0")}`;
-
-
-            snapshot.forEach(
-                (doc) => {
-
-                    const data =
-                        doc.data();
-
-
-                    if (
-                        data.waktu &&
-                        data.password ===
-                        PIN_AKSES
-                    ) {
-
-                        const idDokumen =
-                            doc.id;
-
-
-                        const tglTransaksi =
-                            data.waktu.toDate
-                                ? data.waktu.toDate()
-                                : new Date(
-                                    data.waktu
-                                );
-
-
-                        const tahun =
-                            tglTransaksi
-                                .getFullYear();
-
-
-                        const bulanNum =
-                            tglTransaksi
-                                .getMonth() + 1;
-
-
-                        const hari =
-                            String(
-                                tglTransaksi
-                                    .getDate()
-                            ).padStart(
-                                2,
-                                "0"
-                            );
-
-
-                        const formatTglTransaksi =
-                            `${tahun}-` +
-                            `${String(
-                                bulanNum
-                            ).padStart(2, "0")}-` +
-                            `${hari}`;
-
-
-                        const formatBulanTahun =
-                            `${tahun}-` +
-                            `${String(
-                                bulanNum
-                            ).padStart(2, "0")}`;
-
-
-                        semuaDataTransaksi.push({
-
-                            id:
-                                idDokumen,
-
-                            bulanKey:
-                                formatBulanTahun,
-
-                            hariKey:
-                                formatTglTransaksi,
-
-                            waktu:
-                                tglTransaksi,
-
-                            totalBayar:
-                                data.totalBayar,
-
-                            items:
-                                data.items
-
-                        });
-
-
-                        // Omzet hari ini
-                        if (
-                            formatTglTransaksi ===
-                            hariIni
-                        ) {
-
-                            totalOmzetHariIni +=
-                                data.totalBayar;
-
-                        }
-
-
-                        // Omzet bulanan
-                        if (
-                            !penampungBulanan[
-                                formatBulanTahun
-                            ]
-                        ) {
-
-                            penampungBulanan[
-                                formatBulanTahun
-                            ] = 0;
-
-                        }
-
-
-                        penampungBulanan[
-                            formatBulanTahun
-                        ] +=
-                            data.totalBayar;
-
-
-                        // Omzet harian
-                        if (
-                            !penampungHarian[
-                                formatTglTransaksi
-                            ]
-                        ) {
-
-                            penampungHarian[
-                                formatTglTransaksi
-                            ] = 0;
-
-                        }
-
-
-                        penampungHarian[
-                            formatTglTransaksi
-                        ] +=
-                            data.totalBayar;
-
-                    }
-
-                }
-            );
-
-
-            const totalOmzetEl =
-                document.getElementById(
-                    "total-omzet"
-                );
-
-
-            if (totalOmzetEl) {
-
-                totalOmzetEl.innerText =
-                    formatRupiah(
-                        totalOmzetHariIni
-                    );
-
-            }
-
-
-            renderTabelLaporanBulanan(
-                penampungBulanan
-            );
-
-
-            renderTabelLaporanHarian(
-                penampungHarian
-            );
-
-        },
-
-
-        (error) => {
-
-            console.error(
-                "Gagal monitoring real-time:",
-                error
-            );
-
-        }
+        String(
+            date.getDate()
+        ).padStart(2, "0") +
+        " " +
+        namaBulanIndo[
+            date.getMonth()
+        ] +
+        " " +
+        date.getFullYear()
 
     );
 
@@ -1326,11 +1239,652 @@ function aktifkanLiveMonitoring() {
 
 
 // ==========================================================
-// LAPORAN BULANAN
+// 16. HITUNG HPP TRANSAKSI
 // ==========================================================
 
-function renderTabelLaporanBulanan(
-    dataBulanan
+function hitungHPPTransaksi(transaksi) {
+
+    if (!transaksi.items) {
+
+        return 0;
+
+    }
+
+
+    return transaksi.items.reduce(
+        (total, item) => {
+
+            return (
+                total +
+                hitungHPPItem(item)
+            );
+
+        },
+        0
+    );
+
+}
+
+
+// ==========================================================
+// 17. LIVE FIREBASE
+// ==========================================================
+
+function aktifkanLiveMonitoring() {
+
+    if (
+        !window.db ||
+        !window.collection ||
+        !window.onSnapshot
+    ) {
+
+        console.error(
+            "Firebase belum siap."
+        );
+
+        return;
+
+    }
+
+
+    const collectionRef =
+        window.collection(
+            window.db,
+            "transaksi"
+        );
+
+
+    unsubscribeFirebase =
+        window.onSnapshot(
+
+            collectionRef,
+
+            snapshot => {
+
+                semuaDataTransaksi = [];
+
+
+                snapshot.forEach(
+                    firebaseDoc => {
+
+                        const data =
+                            firebaseDoc.data();
+
+
+                        /*
+                         * Filter menggunakan PIN lama.
+                         * Ini menjaga transaksi lama
+                         * tetap terbaca.
+                         */
+
+                        if (
+                            !data.waktu ||
+                            data.password !==
+                            PIN_AKSES
+                        ) {
+
+                            return;
+
+                        }
+
+
+                        let waktu;
+
+
+                        try {
+
+                            waktu =
+                                data.waktu.toDate
+                                    ? data.waktu.toDate()
+                                    : new Date(
+                                        data.waktu
+                                    );
+
+                        } catch {
+
+                            waktu =
+                                new Date(
+                                    data.waktu
+                                );
+
+                        }
+
+
+                        semuaDataTransaksi.push({
+
+                            id:
+                                firebaseDoc.id,
+
+                            waktu: waktu,
+
+                            totalBayar:
+                                Number(
+                                    data.totalBayar
+                                ) || 0,
+
+                            items:
+                                Array.isArray(
+                                    data.items
+                                )
+                                    ? data.items
+                                    : []
+
+                        });
+
+                    }
+                );
+
+
+                semuaDataTransaksi.sort(
+                    (a, b) =>
+                        b.waktu - a.waktu
+                );
+
+
+                renderSemuaData();
+
+            },
+
+            error => {
+
+                console.error(
+                    "Firebase monitoring error:",
+                    error
+                );
+
+            }
+
+        );
+
+}
+
+
+// ==========================================================
+// 18. RENDER SEMUA DATA
+// ==========================================================
+
+function renderSemuaData() {
+
+    renderDashboard();
+
+    renderTabelLaporan();
+
+    renderOmzetKasir();
+
+}
+
+
+// ==========================================================
+// 19. DATA HARI INI
+// ==========================================================
+
+function ambilTransaksiHariIni() {
+
+    const sekarang =
+        new Date();
+
+    const key =
+        tanggalKey(sekarang);
+
+
+    return semuaDataTransaksi.filter(
+        transaksi =>
+            tanggalKey(
+                transaksi.waktu
+            ) === key
+    );
+
+}
+
+
+// ==========================================================
+// 20. DATA BULAN INI
+// ==========================================================
+
+function ambilTransaksiBulanIni() {
+
+    const sekarang =
+        new Date();
+
+    const key =
+        bulanKey(sekarang);
+
+
+    return semuaDataTransaksi.filter(
+        transaksi =>
+            bulanKey(
+                transaksi.waktu
+            ) === key
+    );
+
+}
+
+
+// ==========================================================
+// 21. HITUNG STATISTIK
+// ==========================================================
+
+function hitungStatistik(
+    daftarTransaksi
+) {
+
+    let omzet = 0;
+
+    let hpp = 0;
+
+    let jumlahItem = 0;
+
+    const menuCount = {};
+
+
+    daftarTransaksi.forEach(
+        transaksi => {
+
+            omzet +=
+                Number(
+                    transaksi.totalBayar
+                ) || 0;
+
+
+            hpp +=
+                hitungHPPTransaksi(
+                    transaksi
+                );
+
+
+            transaksi.items.forEach(
+                item => {
+
+                    const jumlah =
+                        Number(
+                            item.jumlah
+                        ) || 0;
+
+
+                    jumlahItem += jumlah;
+
+
+                    if (
+                        !menuCount[
+                            item.nama
+                        ]
+                    ) {
+
+                        menuCount[
+                            item.nama
+                        ] = 0;
+
+                    }
+
+
+                    menuCount[
+                        item.nama
+                    ] += jumlah;
+
+                }
+            );
+
+        }
+    );
+
+
+    const laba =
+        omzet - hpp;
+
+
+    return {
+
+        omzet,
+
+        hpp,
+
+        laba,
+
+        jumlahItem,
+
+        jumlahTransaksi:
+            daftarTransaksi.length,
+
+        menuCount
+
+    };
+
+}
+
+
+// ==========================================================
+// 22. DASHBOARD
+// ==========================================================
+
+function renderDashboard() {
+
+    const hariIni =
+        ambilTransaksiHariIni();
+
+
+    const bulanIni =
+        ambilTransaksiBulanIni();
+
+
+    const statistikHari =
+        hitungStatistik(
+            hariIni
+        );
+
+
+    const statistikBulan =
+        hitungStatistik(
+            bulanIni
+        );
+
+
+    const sekarang =
+        new Date();
+
+
+    const tanggalEl =
+        document.getElementById(
+            "dashboard-tanggal"
+        );
+
+
+    if (tanggalEl) {
+
+        tanggalEl.innerText =
+            labelTanggal(
+                sekarang
+            );
+
+    }
+
+
+    setText(
+        "dash-omzet-hari",
+        formatRupiah(
+            statistikHari.omzet
+        )
+    );
+
+
+    setText(
+        "dash-transaksi",
+        statistikHari.jumlahTransaksi
+    );
+
+
+    setText(
+        "dash-item",
+        statistikHari.jumlahItem
+    );
+
+
+    setText(
+        "dash-hpp",
+        formatRupiah(
+            statistikHari.hpp
+        )
+    );
+
+
+    setText(
+        "dash-laba",
+        formatRupiah(
+            statistikHari.laba
+        )
+    );
+
+
+    const rata =
+        statistikHari.jumlahTransaksi > 0
+            ? statistikHari.omzet /
+              statistikHari.jumlahTransaksi
+            : 0;
+
+
+    setText(
+        "dash-rata",
+        formatRupiah(
+            Math.round(rata)
+        )
+    );
+
+
+    setText(
+        "dash-periode-hari",
+        labelTanggal(
+            sekarang
+        )
+    );
+
+
+    setText(
+        "dash-bulan-label",
+        namaBulanIndo[
+            sekarang.getMonth()
+        ] +
+        " " +
+        sekarang.getFullYear()
+    );
+
+
+    setText(
+        "dash-omzet-bulan",
+        formatRupiah(
+            statistikBulan.omzet
+        )
+    );
+
+
+    setText(
+        "dash-hpp-bulan",
+        formatRupiah(
+            statistikBulan.hpp
+        )
+    );
+
+
+    setText(
+        "dash-laba-bulan",
+        formatRupiah(
+            statistikBulan.laba
+        )
+    );
+
+
+    renderMenuTerlaris(
+        statistikHari.menuCount
+    );
+
+}
+
+
+// ==========================================================
+// 23. MENU TERLARIS
+// ==========================================================
+
+function renderMenuTerlaris(
+    menuCount
+) {
+
+    const container =
+        document.getElementById(
+            "menu-terlaris"
+        );
+
+
+    if (!container) return;
+
+
+    const data =
+        Object.entries(
+            menuCount
+        )
+        .sort(
+            (a, b) => b[1] - a[1]
+        )
+        .slice(0, 5);
+
+
+    if (data.length === 0) {
+
+        container.innerHTML = `
+
+            <div class="empty-data">
+                Belum ada penjualan hari ini.
+            </div>
+
+        `;
+
+        return;
+
+    }
+
+
+    container.innerHTML = "";
+
+
+    data.forEach(
+        ([nama, jumlah], index) => {
+
+            const row =
+                document.createElement(
+                    "div"
+                );
+
+
+            row.className =
+                "best-menu";
+
+
+            row.innerHTML = `
+
+                <div class="best-rank">
+                    ${index + 1}
+                </div>
+
+                <div class="best-name">
+                    ${nama}
+                </div>
+
+                <div class="best-qty">
+                    ${jumlah} terjual
+                </div>
+
+            `;
+
+
+            container.appendChild(row);
+
+        }
+    );
+
+}
+
+
+// ==========================================================
+// 24. OMZET DI KASIR
+// ==========================================================
+
+function renderOmzetKasir() {
+
+    const hariIni =
+        ambilTransaksiHariIni();
+
+
+    const statistik =
+        hitungStatistik(
+            hariIni
+        );
+
+
+    setText(
+        "kasir-omzet-hari",
+        formatRupiah(
+            statistik.omzet
+        )
+    );
+
+
+    setText(
+        "kasir-transaksi-hari",
+        statistik.jumlahTransaksi +
+        " transaksi"
+    );
+
+}
+
+
+// ==========================================================
+// 25. LAPORAN
+// ==========================================================
+
+function renderTabelLaporan() {
+
+    const bulanan = {};
+
+    const harian = {};
+
+
+    semuaDataTransaksi.forEach(
+        transaksi => {
+
+            const bKey =
+                bulanKey(
+                    transaksi.waktu
+                );
+
+
+            const hKey =
+                tanggalKey(
+                    transaksi.waktu
+                );
+
+
+            if (!bulanan[bKey]) {
+
+                bulanan[bKey] = [];
+
+            }
+
+
+            if (!harian[hKey]) {
+
+                harian[hKey] = [];
+
+            }
+
+
+            bulanan[bKey].push(
+                transaksi
+            );
+
+
+            harian[hKey].push(
+                transaksi
+            );
+
+        }
+    );
+
+
+    renderLaporanBulanan(
+        bulanan
+    );
+
+
+    renderLaporanHarian(
+        harian
+    );
+
+}
+
+
+// ==========================================================
+// 26. LAPORAN BULANAN
+// ==========================================================
+
+function renderLaporanBulanan(
+    data
 ) {
 
     const tbody =
@@ -1345,32 +1899,20 @@ function renderTabelLaporanBulanan(
     tbody.innerHTML = "";
 
 
-    const bulanUrut =
-        Object.keys(
-            dataBulanan
-        )
+    const keys =
+        Object.keys(data)
         .sort()
         .reverse();
 
 
-    if (
-        bulanUrut.length === 0
-    ) {
+    if (keys.length === 0) {
 
         tbody.innerHTML = `
 
             <tr>
-
-                <td
-                    colspan="3"
-                    style="
-                        text-align:center;
-                        color:#718096;
-                    "
-                >
-                    Belum ada data transaksi bulanan.
+                <td colspan="3">
+                    Belum ada transaksi.
                 </td>
-
             </tr>
 
         `;
@@ -1380,94 +1922,79 @@ function renderTabelLaporanBulanan(
     }
 
 
-    bulanUrut.forEach(
-        key => {
+    keys.forEach(key => {
 
-            const [
-                tahun,
-                bulanStr
-            ] =
-                key.split("-");
+        const transaksi =
+            data[key];
 
 
-            const namaBulan =
-                namaBulanIndo[
-                    parseInt(
-                        bulanStr
-                    ) - 1
-                ];
-
-
-            const totalOmzetBulanan =
-                dataBulanan[key];
-
-
-            const tr =
-                document.createElement(
-                    "tr"
-                );
-
-
-            tr.innerHTML = `
-
-                <td>
-                    <strong>
-                        ${namaBulan} ${tahun}
-                    </strong>
-                </td>
-
-                <td
-                    class="text-right"
-                    style="
-                        font-weight:600;
-                        color:#10b981;
-                    "
-                >
-                    ${formatRupiah(
-                        totalOmzetBulanan
-                    )}
-                </td>
-
-                <td
-                    style="
-                        text-align:center;
-                    "
-                >
-
-                    <button
-                        class="btn-detail"
-                        onclick="
-                            bukaDetailRiwayat(
-                                'bulan',
-                                '${key}',
-                                '${namaBulan} ${tahun}'
-                            )
-                        "
-                    >
-                        Lihat Riwayat
-                    </button>
-
-                </td>
-
-            `;
-
-
-            tbody.appendChild(
-                tr
+        const statistik =
+            hitungStatistik(
+                transaksi
             );
 
-        }
-    );
+
+        const [tahun, bulan] =
+            key.split("-");
+
+
+        const namaBulan =
+            namaBulanIndo[
+                Number(bulan) - 1
+            ];
+
+
+        const tr =
+            document.createElement(
+                "tr"
+            );
+
+
+        tr.innerHTML = `
+
+            <td>
+                <strong>
+                    ${namaBulan} ${tahun}
+                </strong>
+            </td>
+
+            <td>
+                ${formatRupiah(
+                    statistik.omzet
+                )}
+            </td>
+
+            <td>
+
+                <button
+                    class="btn-detail"
+                    onclick="bukaDetailRiwayat(
+                        'bulan',
+                        '${key}',
+                        '${namaBulan} ${tahun}'
+                    )"
+                >
+                    Detail
+                </button>
+
+            </td>
+
+        `;
+
+
+        tbody.appendChild(tr);
+
+    });
 
 }
 
 
 // ==========================================================
-// LAPORAN HARIAN
+// 27. LAPORAN HARIAN
 // ==========================================================
 
-function renderTabelLaporanHarian(
-    dataHarian
+function renderLaporanHarian(
+    data
 ) {
 
     const tbody =
@@ -1482,32 +2009,20 @@ function renderTabelLaporanHarian(
     tbody.innerHTML = "";
 
 
-    const hariUrut =
-        Object.keys(
-            dataHarian
-        )
+    const keys =
+        Object.keys(data)
         .sort()
         .reverse();
 
 
-    if (
-        hariUrut.length === 0
-    ) {
+    if (keys.length === 0) {
 
         tbody.innerHTML = `
 
             <tr>
-
-                <td
-                    colspan="3"
-                    style="
-                        text-align:center;
-                        color:#718096;
-                    "
-                >
-                    Belum ada data transaksi harian.
+                <td colspan="3">
+                    Belum ada transaksi.
                 </td>
-
             </tr>
 
         `;
@@ -1517,208 +2032,186 @@ function renderTabelLaporanHarian(
     }
 
 
-    hariUrut.forEach(
-        key => {
+    keys.forEach(key => {
 
-            const [
-                tahun,
-                bulanStr,
-                hariStr
-            ] =
-                key.split("-");
+        const transaksi =
+            data[key];
 
 
-            const namaBulan =
-                namaBulanIndo[
-                    parseInt(
-                        bulanStr
-                    ) - 1
-                ];
-
-
-            const labelTanggal =
-                `${hariStr} ` +
-                `${namaBulan} ` +
-                `${tahun}`;
-
-
-            const totalOmzetHarian =
-                dataHarian[key];
-
-
-            const tr =
-                document.createElement(
-                    "tr"
-                );
-
-
-            tr.innerHTML = `
-
-                <td>
-                    ${labelTanggal}
-                </td>
-
-                <td
-                    class="text-right"
-                    style="
-                        font-weight:600;
-                        color:#3182ce;
-                    "
-                >
-                    ${formatRupiah(
-                        totalOmzetHarian
-                    )}
-                </td>
-
-                <td
-                    style="
-                        text-align:center;
-                    "
-                >
-
-                    <button
-                        class="btn-detail"
-                        onclick="
-                            bukaDetailRiwayat(
-                                'hari',
-                                '${key}',
-                                '${labelTanggal}'
-                            )
-                        "
-                    >
-                        Lihat Riwayat
-                    </button>
-
-                </td>
-
-            `;
-
-
-            tbody.appendChild(
-                tr
+        const statistik =
+            hitungStatistik(
+                transaksi
             );
 
-        }
-    );
+
+        const [tahun, bulan, hari] =
+            key.split("-");
+
+
+        const namaBulan =
+            namaBulanIndo[
+                Number(bulan) - 1
+            ];
+
+
+        const label =
+            hari +
+            " " +
+            namaBulan +
+            " " +
+            tahun;
+
+
+        const tr =
+            document.createElement(
+                "tr"
+            );
+
+
+        tr.innerHTML = `
+
+            <td>
+                ${label}
+            </td>
+
+            <td>
+                ${formatRupiah(
+                    statistik.omzet
+                )}
+            </td>
+
+            <td>
+
+                <button
+                    class="btn-detail"
+                    onclick="bukaDetailRiwayat(
+                        'hari',
+                        '${key}',
+                        '${label}'
+                    )"
+                >
+                    Detail
+                </button>
+
+            </td>
+
+        `;
+
+
+        tbody.appendChild(tr);
+
+    });
 
 }
 
 
 // ==========================================================
-// DETAIL RIWAYAT
+// 28. DETAIL RIWAYAT
 // ==========================================================
 
 window.bukaDetailRiwayat =
-    function(
+    function (
         tipe,
-        kunciPencarian,
-        labelJudul
+        key,
+        label
     ) {
 
-        if (!sudahLogin) return;
-
-
-        document.getElementById(
-            "modal-detail-title"
-        ).innerText =
-            `Riwayat: ${labelJudul}`;
-
-
-        const listRiwayat =
+        const list =
             document.getElementById(
                 "list-riwayat-transaksi"
             );
 
 
-        listRiwayat.innerHTML =
-            "";
+        const title =
+            document.getElementById(
+                "modal-detail-title"
+            );
 
 
-        const transaksiFilter =
+        if (title) {
+
+            title.innerText =
+                "Riwayat: " + label;
+
+        }
+
+
+        list.innerHTML = "";
+
+
+        const transaksi =
             semuaDataTransaksi
-                .filter(
-                    t => {
+            .filter(t => {
 
-                        return tipe === "bulan"
-                            ? t.bulanKey ===
-                                kunciPencarian
-                            : t.hariKey ===
-                                kunciPencarian;
+                if (
+                    tipe === "bulan"
+                ) {
 
-                    }
-                )
-                .sort(
-                    (a, b) =>
-                        b.waktu - a.waktu
+                    return (
+                        bulanKey(
+                            t.waktu
+                        ) === key
+                    );
+
+                }
+
+
+                return (
+                    tanggalKey(
+                        t.waktu
+                    ) === key
                 );
+
+            })
+            .sort(
+                (a, b) =>
+                    b.waktu - a.waktu
+            );
 
 
         if (
-            transaksiFilter.length === 0
+            transaksi.length === 0
         ) {
 
-            listRiwayat.innerHTML =
-                `
-                    <li
-                        style="
-                            text-align:center;
-                            color:#999;
-                        "
-                    >
-                        Tidak ada transaksi.
-                    </li>
-                `;
+            list.innerHTML = `
+
+                <li
+                    style="
+                        text-align:center;
+                        padding:20px;
+                        color:#9ca3af;
+                    "
+                >
+                    Tidak ada transaksi.
+                </li>
+
+            `;
 
         } else {
 
-            transaksiFilter.forEach(
-                t => {
+            transaksi.forEach(
+                transaksiItem => {
 
                     const jam =
                         String(
-                            t.waktu
+                            transaksiItem
+                                .waktu
                                 .getHours()
-                        ).padStart(
-                            2,
-                            "0"
-                        )
-                        +
-                        ":"
-                        +
+                        ).padStart(2, "0") +
+                        ":" +
                         String(
-                            t.waktu
+                            transaksiItem
+                                .waktu
                                 .getMinutes()
-                        ).padStart(
-                            2,
-                            "0"
-                        );
+                        ).padStart(2, "0");
 
 
-                    const tgl =
-                        String(
-                            t.waktu
-                                .getDate()
-                        ).padStart(
-                            2,
-                            "0"
-                        );
-
-
-                    const bulanSingkat =
-                        namaBulanIndo[
-                            t.waktu
-                                .getMonth()
-                        ].substring(
-                            0,
-                            3
-                        );
-
-
-                    const rincianItem =
-                        t.items
+                    const rincian =
+                        transaksiItem
+                            .items
                             .map(
-                                i =>
-                                    `${i.nama} (${i.jumlah}x)`
+                                item =>
+                                    `${item.nama} (${item.jumlah}x)`
                             )
                             .join(", ");
 
@@ -1735,65 +2228,32 @@ window.bukaDetailRiwayat =
 
                     li.innerHTML = `
 
-                        <div
-                            style="
-                                max-width:70%;
-                                line-height:1.3;
-                            "
-                        >
+                        <div class="riwayat-left">
 
-                            <span
-                                style="
-                                    font-size:0.75rem;
-                                    color:#a0aec0;
-                                    font-weight:bold;
-                                "
-                            >
-                                ${tgl}
-                                ${bulanSingkat}
-                                /
+                            <span class="riwayat-time">
                                 ${jam}
                             </span>
 
-                            <br>
-
-                            <span
-                                style="
-                                    color:#4a5568;
-                                    font-size:0.8rem;
-                                "
-                            >
-                                ${rincianItem}
+                            <span class="riwayat-items">
+                                ${rincian}
                             </span>
 
                         </div>
 
-                        <div
-                            style="
-                                display:flex;
-                                align-items:center;
-                                gap:8px;
-                            "
-                        >
+                        <div class="riwayat-right">
 
-                            <strong
-                                style="
-                                    color:#2d3748;
-                                "
-                            >
+                            <strong class="riwayat-price">
                                 ${formatRupiah(
-                                    t.totalBayar
+                                    transaksiItem.totalBayar
                                 )}
                             </strong>
 
                             <button
                                 class="btn-hapus-cloud"
-                                onclick="
-                                    hapusTransaksiCloud(
-                                        '${t.id}',
-                                        ${t.totalBayar}
-                                    )
-                                "
+                                onclick="hapusTransaksiCloud(
+                                    '${transaksiItem.id}',
+                                    ${transaksiItem.totalBayar}
+                                )"
                             >
                                 Hapus
                             </button>
@@ -1803,9 +2263,7 @@ window.bukaDetailRiwayat =
                     `;
 
 
-                    listRiwayat.appendChild(
-                        li
-                    );
+                    list.appendChild(li);
 
                 }
             );
@@ -1815,62 +2273,54 @@ window.bukaDetailRiwayat =
 
         document.getElementById(
             "popup-detail"
-        ).style.display =
-            "flex";
+        ).style.display = "flex";
 
     };
 
 
 window.tutupModalDetail =
-    function() {
+    function () {
 
         document.getElementById(
             "popup-detail"
-        ).style.display =
-            "none";
+        ).style.display = "none";
 
     };
 
 
 // ==========================================================
-// HAPUS TRANSAKSI
+// 29. HAPUS TRANSAKSI
 // ==========================================================
 
 window.hapusTransaksiCloud =
-    async function(
+    async function (
         idDokumen,
         nominal
     ) {
 
-        if (!sudahLogin) return;
-
-
-        const konfirmasiAwal =
+        const yakin =
             confirm(
-
-                `Apakah Anda yakin ingin ` +
-                `MENGHAPUS DATA transaksi sebesar ` +
-                `${formatRupiah(nominal)} ini?`
-
+                "Hapus transaksi sebesar " +
+                formatRupiah(
+                    nominal
+                ) +
+                "?"
             );
 
 
-        if (!konfirmasiAwal) return;
+        if (!yakin) return;
 
 
-        const pinInput =
+        const pin =
             prompt(
-                "Masukkan PIN Keamanan untuk menyetujui penghapusan data:"
+                "Masukkan PIN keamanan:"
             );
 
 
-        if (
-            pinInput !==
-            PIN_AKSES
-        ) {
+        if (pin !== PIN_AKSES) {
 
             alert(
-                "PIN SALAH! Anda tidak memiliki izin menghapus data cloud."
+                "PIN SALAH."
             );
 
             return;
@@ -1880,20 +2330,7 @@ window.hapusTransaksiCloud =
 
         try {
 
-            if (
-                !window.db ||
-                !window.docRef ||
-                !window.deleteDoc
-            ) {
-
-                throw new Error(
-                    "Modul penghapusan Firebase belum siap."
-                );
-
-            }
-
-
-            const dokumenRef =
+            const ref =
                 window.docRef(
                     window.db,
                     "transaksi",
@@ -1902,12 +2339,12 @@ window.hapusTransaksiCloud =
 
 
             await window.deleteDoc(
-                dokumenRef
+                ref
             );
 
 
             alert(
-                "Transaksi BERHASIL dihapus dari Cloud database!"
+                "Transaksi berhasil dihapus."
             );
 
 
@@ -1917,13 +2354,12 @@ window.hapusTransaksiCloud =
         } catch (error) {
 
             console.error(
-                "Gagal menghapus data dari Firebase:",
                 error
             );
 
 
             alert(
-                "Gagal menghapus! Periksa kembali koneksi internet Anda."
+                "Gagal menghapus transaksi."
             );
 
         }
@@ -1932,21 +2368,200 @@ window.hapusTransaksiCloud =
 
 
 // ==========================================================
-// INISIALISASI POS
+// 30. HPP - RENDER
 // ==========================================================
 
-function inisialisasiPOS() {
+function renderHPP() {
 
-    if (posSudahDiinisialisasi) {
+    const container =
+        document.getElementById(
+            "container-hpp"
+        );
+
+
+    if (!container) return;
+
+
+    const hpp =
+        ambilHPP();
+
+
+    container.innerHTML = "";
+
+
+    daftarMenu.forEach(menu => {
+
+        const row =
+            document.createElement(
+                "div"
+            );
+
+
+        row.className =
+            "hpp-row";
+
+
+        row.innerHTML = `
+
+            <div class="hpp-name">
+
+                <strong>
+                    ${menu.nama}
+                </strong>
+
+                <span>
+                    Harga jual:
+                    ${formatRupiah(
+                        menu.harga
+                    )}
+                </span>
+
+            </div>
+
+
+            <input
+                type="number"
+                class="hpp-input"
+                data-hpp-id="${menu.id}"
+                value="${hpp[menu.id] || 0}"
+                min="0"
+                step="500"
+                inputmode="numeric"
+            >
+
+        `;
+
+
+        container.appendChild(row);
+
+    });
+
+}
+
+
+// ==========================================================
+// 31. SIMPAN HPP
+// ==========================================================
+
+window.simpanSemuaHPP =
+    function () {
+
+        const inputs =
+            document.querySelectorAll(
+                ".hpp-input"
+            );
+
+
+        const data = {};
+
+
+        inputs.forEach(input => {
+
+            const id =
+                input.dataset.hppId;
+
+
+            const nilai =
+                parseInt(
+                    input.value
+                ) || 0;
+
+
+            data[id] =
+                Math.max(
+                    0,
+                    nilai
+                );
+
+        });
+
+
+        localStorage.setItem(
+
+            "sateTaichanRIA_HPP",
+
+            JSON.stringify(
+                data
+            )
+
+        );
+
+
+        alert(
+            "HPP berhasil disimpan."
+        );
+
+
+        renderDashboard();
+
+    };
+
+
+// ==========================================================
+// 32. REFRESH
+// ==========================================================
+
+window.refreshDashboard =
+    function () {
+
+        renderSemuaData();
+
+    };
+
+
+// ==========================================================
+// 33. SET TEXT
+// ==========================================================
+
+function setText(
+    id,
+    text
+) {
+
+    const element =
+        document.getElementById(id);
+
+
+    if (element) {
+
+        element.innerText =
+            text;
+
+    }
+
+}
+
+
+// ==========================================================
+// 34. INISIALISASI
+// ==========================================================
+
+let aplikasiSudahDiinisialisasi =
+    false;
+
+
+function inisialisasiAplikasi() {
+
+    if (
+        aplikasiSudahDiinisialisasi
+    ) {
+
+        renderSemuaData();
+
         return;
+
     }
 
 
-    posSudahDiinisialisasi =
+    aplikasiSudahDiinisialisasi =
         true;
 
 
     renderTombolMenu();
+
+    perbaruiTampilanKeranjang();
+
+    renderHPP();
 
     aktifkanLiveMonitoring();
 
@@ -1954,26 +2569,7 @@ function inisialisasiPOS() {
 
 
 // ==========================================================
-// START APPLICATION
+// 35. MULAI
 // ==========================================================
 
-pasangEventLogin();
-
-
-// Jika sudah login dalam sesi browser,
-// langsung tampilkan POS.
-// Jika belum, tampilkan halaman login.
 cekStatusLogin();
-
-
-// Jika status sudah login ketika halaman dibuka,
-// inisialisasi POS.
-if (
-    sessionStorage.getItem(
-        "sateTaichanRIA_login"
-    ) === "true"
-) {
-
-    inisialisasiPOS();
-
-}
