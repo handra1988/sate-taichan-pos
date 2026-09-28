@@ -5,44 +5,38 @@
 
     <meta
         name="viewport"
-        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+        content="width=device-width, initial-scale=1.0, viewport-fit=cover"
     >
 
-    <title>POS Sate Taichan RIA</title>
+    <meta name="theme-color" content="#d62828">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+
+    <title>Sate Taichan RIA - POS</title>
 
     <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#ff4e50">
-
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="Sate Taichan RIA">
-
     <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
 
-<!-- ======================================================
+<!-- =========================================================
      LOGIN
-====================================================== -->
-
-<div id="login-screen" class="login-screen">
+========================================================= -->
+<div id="loginOverlay" class="login-overlay">
 
     <div class="login-box">
 
         <div class="login-logo">
-            🔥
+            🌶️
         </div>
 
         <h1>Sate Taichan RIA</h1>
-
-        <p class="login-subtitle">
-            POS & Dashboard Usaha
-        </p>
+        <p class="login-subtitle">Point of Sale</p>
 
         <div class="login-form">
 
-            <label for="login-password">
+            <label for="passwordLogin">
                 Password Kasir
             </label>
 
@@ -50,40 +44,36 @@
 
                 <input
                     type="password"
-                    id="login-password"
+                    id="passwordLogin"
                     placeholder="Masukkan password"
                     autocomplete="current-password"
+                    onkeydown="if(event.key==='Enter') prosesLogin()"
                 >
 
                 <button
                     type="button"
                     class="btn-show-password"
-                    onclick="togglePassword()"
+                    onclick="togglePasswordLogin()"
                 >
                     👁️
                 </button>
 
             </div>
 
-            <div
-                id="login-error"
-                class="login-error"
-            >
-                Password salah.
-            </div>
+            <p id="loginError" class="login-error"></p>
 
             <button
+                type="button"
                 class="btn-login"
-                onclick="loginPOS()"
+                onclick="prosesLogin()"
             >
-                🔓 Masuk ke POS
+                🔐 Masuk
             </button>
 
         </div>
 
         <div class="login-footer">
-            Sate Taichan RIA<br>
-            <span>Depan SMAN 1 Pariaman</span>
+            Sate Taichan RIA
         </div>
 
     </div>
@@ -91,33 +81,37 @@
 </div>
 
 
-<!-- ======================================================
-     APLIKASI
-====================================================== -->
-
-<div id="app" class="app-hidden">
+<!-- =========================================================
+     APP
+========================================================= -->
+<div id="app" class="app hidden">
 
     <!-- HEADER -->
-
     <header class="app-header">
 
         <div class="header-left">
 
-            <div class="brand-icon">
-                🔥
+            <div class="header-logo">
+                🌶️
             </div>
 
             <div>
-                <h1>Sate Taichan RIA</h1>
-                <span>POS & Dashboard Usaha</span>
+                <div class="header-title">
+                    Sate Taichan RIA
+                </div>
+
+                <div class="header-subtitle">
+                    POS & Monitoring
+                </div>
             </div>
 
         </div>
 
         <button
+            type="button"
             class="btn-lock"
-            onclick="kunciPOS()"
-            title="Kunci POS"
+            onclick="kunciAplikasi()"
+            title="Kunci aplikasi"
         >
             🔒
         </button>
@@ -125,482 +119,720 @@
     </header>
 
 
-    <!-- ==================================================
-         HALAMAN KASIR
-    ================================================== -->
-
-    <main
-        id="page-kasir"
-        class="page active-page"
-    >
-
-        <section class="quick-omzet">
-
-            <div>
-                <span>💰 Omzet Hari Ini</span>
-                <strong id="kasir-omzet-hari">
-                    Rp 0
-                </strong>
-            </div>
-
-            <div class="quick-omzet-info">
-                <span id="kasir-transaksi-hari">
-                    0 transaksi
-                </span>
-            </div>
-
-        </section>
+    <!-- =====================================================
+         MAIN CONTENT
+    ====================================================== -->
+    <main class="main-content">
 
 
-        <section class="menu-section">
+        <!-- =================================================
+             PAGE KASIR
+        ================================================== -->
+        <section id="page-kasir" class="page active">
 
-            <div class="section-title-row">
-
+            <div class="page-title">
                 <div>
-                    <h2>Daftar Menu 📋</h2>
-                    <span>Pilih menu untuk memasukkan pesanan</span>
+                    <h2>Kasir</h2>
+                    <p>Pilih menu untuk membuat transaksi</p>
+                </div>
+
+                <div class="today-badge" id="tanggalKasir">
+                    -
+                </div>
+            </div>
+
+
+            <!-- OMZET HARI INI -->
+            <div class="cashier-summary">
+
+                <div class="summary-card">
+
+                    <div class="summary-icon">
+                        💰
+                    </div>
+
+                    <div>
+                        <span>Omzet Hari Ini</span>
+                        <strong id="kasirOmzetHariIni">
+                            Rp0
+                        </strong>
+                    </div>
+
+                </div>
+
+                <div class="summary-card">
+
+                    <div class="summary-icon">
+                        🧾
+                    </div>
+
+                    <div>
+                        <span>Transaksi</span>
+                        <strong id="kasirTransaksiHariIni">
+                            0
+                        </strong>
+                    </div>
+
                 </div>
 
             </div>
 
-            <div
-                id="container-menu"
-                class="menu-grid"
-            ></div>
 
-        </section>
+            <!-- MENU -->
+            <div class="section-heading">
+                <h3>Menu</h3>
+            </div>
+
+            <div id="menuGrid" class="menu-grid">
+                <!-- dibuat oleh JS -->
+            </div>
 
 
-        <section class="cart-section">
+            <!-- KERANJANG -->
+            <div class="cart-section">
 
-            <div class="cart-title">
+                <div class="section-heading cart-heading">
 
-                <div>
-                    <h2>🛒 Keranjang</h2>
-                    <span id="jumlah-item-keranjang">
-                        0 item
-                    </span>
+                    <div>
+                        <h3>Keranjang</h3>
+                        <span id="jumlahItemKeranjang">
+                            0 item
+                        </span>
+                    </div>
+
+                    <button
+                        type="button"
+                        class="btn-clear"
+                        onclick="kosongkanKeranjang()"
+                    >
+                        Kosongkan
+                    </button>
+
                 </div>
+
+
+                <div id="cartContainer" class="cart-container">
+
+                    <div class="empty-state">
+                        <div class="empty-icon">
+                            🛒
+                        </div>
+
+                        <p>
+                            Belum ada menu dipilih
+                        </p>
+
+                        <span>
+                            Pilih menu di atas
+                        </span>
+                    </div>
+
+                </div>
+
+
+                <!-- TOTAL -->
+                <div class="cart-total">
+
+                    <span>Total</span>
+
+                    <strong id="cartTotal">
+                        Rp0
+                    </strong>
+
+                </div>
+
 
                 <button
-                    class="btn-clear-cart"
-                    onclick="kosongkanKeranjang()"
+                    type="button"
+                    class="btn-primary btn-pay"
+                    onclick="bukaPembayaran()"
                 >
-                    Kosongkan
+                    💳 Bayar
                 </button>
 
             </div>
 
-            <ul
-                id="daftar-keranjang"
-                class="cart-list"
-            ></ul>
-
-
-            <div class="cart-empty" id="cart-empty">
-                Keranjang masih kosong.
-            </div>
-
-
-            <div class="cart-total">
-
-                <span>Total</span>
-
-                <strong id="total-harga">
-                    Rp 0
-                </strong>
-
-            </div>
-
-            <button
-                id="btn-bayar"
-                onclick="bukaModalPembayaran()"
-            >
-                💳 Bayar & Simpan Transaksi
-            </button>
-
-        </section>
-
-    </main>
-
-
-    <!-- ==================================================
-         HALAMAN DASHBOARD
-    ================================================== -->
-
-    <main
-        id="page-dashboard"
-        class="page"
-    >
-
-        <div class="page-heading">
-
-            <div>
-                <h2>📊 Dashboard</h2>
-                <p id="dashboard-tanggal">
-                    Hari ini
-                </p>
-            </div>
-
-            <button
-                class="btn-refresh"
-                onclick="refreshDashboard()"
-            >
-                ↻
-            </button>
-
-        </div>
-
-
-        <!-- KARTU UTAMA -->
-
-        <section class="dashboard-main-card">
-
-            <span>💰 OMZET HARI INI</span>
-
-            <strong id="dash-omzet-hari">
-                Rp 0
-            </strong>
-
-            <small id="dash-periode-hari">
-                Hari ini
-            </small>
-
         </section>
 
 
-        <!-- STATISTIK -->
+        <!-- =================================================
+             PAGE DASHBOARD
+        ================================================== -->
+        <section id="page-dashboard" class="page">
 
-        <section class="stats-grid">
-
-            <div class="stat-card">
-
-                <span>🧾 Transaksi</span>
-
-                <strong id="dash-transaksi">
-                    0
-                </strong>
-
-            </div>
-
-            <div class="stat-card">
-
-                <span>🛒 Item Terjual</span>
-
-                <strong id="dash-item">
-                    0
-                </strong>
-
-            </div>
-
-            <div class="stat-card">
-
-                <span>💵 HPP</span>
-
-                <strong id="dash-hpp">
-                    Rp 0
-                </strong>
-
-            </div>
-
-            <div class="stat-card profit-card">
-
-                <span>📈 Laba Kotor</span>
-
-                <strong id="dash-laba">
-                    Rp 0
-                </strong>
-
-            </div>
-
-        </section>
-
-
-        <!-- RATA-RATA TRANSAKSI -->
-
-        <section class="info-card">
-
-            <div>
-
-                <span>🛍️ Rata-rata transaksi</span>
-
-                <strong id="dash-rata">
-                    Rp 0
-                </strong>
-
-            </div>
-
-            <div class="info-icon">
-                🧮
-            </div>
-
-        </section>
-
-
-        <!-- MENU TERLARIS -->
-
-        <section class="dashboard-section">
-
-            <div class="section-heading">
-
-                <h3>🥇 Menu Terlaris Hari Ini</h3>
-
-            </div>
-
-            <div id="menu-terlaris">
-                <div class="empty-data">
-                    Belum ada penjualan hari ini.
-                </div>
-            </div>
-
-        </section>
-
-
-        <!-- BULAN -->
-
-        <section class="dashboard-section">
-
-            <div class="section-heading">
-
-                <h3>📅 Bulan Berjalan</h3>
-
-                <span id="dash-bulan-label">
-                    -
-                </span>
-
-            </div>
-
-            <div class="month-summary">
+            <div class="page-title">
 
                 <div>
+                    <h2>Dashboard</h2>
+                    <p>Ringkasan usaha hari ini</p>
+                </div>
+
+                <div class="live-status">
+                    <span class="live-dot"></span>
+                    LIVE
+                </div>
+
+            </div>
+
+
+            <!-- FILTER DASHBOARD -->
+            <div class="filter-card">
+
+                <label for="dashboardTanggal">
+                    Tanggal
+                </label>
+
+                <input
+                    type="date"
+                    id="dashboardTanggal"
+                    onchange="renderSemuaData()"
+                >
+
+            </div>
+
+
+            <!-- KPI -->
+            <div class="dashboard-grid">
+
+                <div class="dashboard-card omzet">
+
+                    <div class="card-icon">
+                        💰
+                    </div>
+
                     <span>Omzet</span>
-                    <strong id="dash-omzet-bulan">
-                        Rp 0
+
+                    <strong id="dashboardOmzet">
+                        Rp0
                     </strong>
+
                 </div>
 
-                <div>
+
+                <div class="dashboard-card transaksi">
+
+                    <div class="card-icon">
+                        🧾
+                    </div>
+
+                    <span>Transaksi</span>
+
+                    <strong id="dashboardTransaksi">
+                        0
+                    </strong>
+
+                </div>
+
+
+                <div class="dashboard-card item">
+
+                    <div class="card-icon">
+                        🍢
+                    </div>
+
+                    <span>Item Terjual</span>
+
+                    <strong id="dashboardItem">
+                        0
+                    </strong>
+
+                </div>
+
+
+                <div class="dashboard-card hpp">
+
+                    <div class="card-icon">
+                        📦
+                    </div>
+
                     <span>HPP</span>
-                    <strong id="dash-hpp-bulan">
-                        Rp 0
+
+                    <strong id="dashboardHPP">
+                        Rp0
                     </strong>
+
+                </div>
+
+
+                <div class="dashboard-card laba">
+
+                    <div class="card-icon">
+                        📈
+                    </div>
+
+                    <span>Laba Kotor</span>
+
+                    <strong id="dashboardLaba">
+                        Rp0
+                    </strong>
+
+                </div>
+
+
+                <div class="dashboard-card average">
+
+                    <div class="card-icon">
+                        🧮
+                    </div>
+
+                    <span>Rata-rata Transaksi</span>
+
+                    <strong id="dashboardAverage">
+                        Rp0
+                    </strong>
+
+                </div>
+
+            </div>
+
+
+            <!-- TOP MENU -->
+            <div class="dashboard-section">
+
+                <div class="section-heading">
+
+                    <div>
+                        <h3>🔥 Menu Terlaris</h3>
+                        <p>Penjualan berdasarkan jumlah item</p>
+                    </div>
+
+                </div>
+
+                <div
+                    id="topMenuContainer"
+                    class="top-menu-container"
+                >
+                    -
+                </div>
+
+            </div>
+
+
+            <!-- BULANAN -->
+            <div class="dashboard-section">
+
+                <div class="section-heading">
+
+                    <div>
+                        <h3>📊 Ringkasan Bulan</h3>
+                        <p>Berdasarkan bulan berjalan</p>
+                    </div>
+
+                </div>
+
+                <div class="monthly-summary">
+
+                    <div>
+                        <span>Omzet</span>
+                        <strong id="monthlyOmzet">
+                            Rp0
+                        </strong>
+                    </div>
+
+                    <div>
+                        <span>HPP</span>
+                        <strong id="monthlyHPP">
+                            Rp0
+                        </strong>
+                    </div>
+
+                    <div>
+                        <span>Laba</span>
+                        <strong id="monthlyLaba">
+                            Rp0
+                        </strong>
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- TRANSAKSI TERBARU -->
+            <div class="dashboard-section">
+
+                <div class="section-heading">
+
+                    <div>
+                        <h3>🧾 Transaksi Terbaru</h3>
+                        <p>5 transaksi terakhir</p>
+                    </div>
+
+                    <button
+                        type="button"
+                        class="btn-small"
+                        onclick="pindahHalaman('riwayat')"
+                    >
+                        Lihat Semua
+                    </button>
+
+                </div>
+
+                <div id="dashboardRecentTransactions">
+                    -
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- =================================================
+             PAGE RIWAYAT
+        ================================================== -->
+        <section id="page-riwayat" class="page">
+
+            <div class="page-title">
+
+                <div>
+                    <h2>Riwayat Transaksi</h2>
+                    <p>Kelola transaksi yang sudah tersimpan</p>
+                </div>
+
+                <div class="history-count">
+                    <span id="jumlahSemuaTransaksi">
+                        0
+                    </span>
+                </div>
+
+            </div>
+
+
+            <!-- INFO -->
+            <div class="info-card">
+
+                <div class="info-icon">
+                    ℹ️
                 </div>
 
                 <div>
-                    <span>Laba Kotor</span>
-                    <strong id="dash-laba-bulan">
-                        Rp 0
-                    </strong>
+                    <strong>Hapus transaksi yang salah</strong>
+
+                    <p>
+                        Pilih transaksi yang ingin dihapus.
+                        Penghapusan membutuhkan PIN keamanan.
+                    </p>
+                </div>
+
+            </div>
+
+
+            <!-- SEARCH -->
+            <div class="search-card">
+
+                <div class="search-wrapper">
+
+                    <span class="search-icon">
+                        🔎
+                    </span>
+
+                    <input
+                        type="search"
+                        id="searchRiwayat"
+                        placeholder="Cari transaksi / menu..."
+                        oninput="renderRiwayat()"
+                    >
+
+                    <button
+                        type="button"
+                        onclick="clearSearchRiwayat()"
+                        class="search-clear"
+                    >
+                        ×
+                    </button>
+
+                </div>
+
+            </div>
+
+
+            <!-- LIST -->
+            <div
+                id="riwayatContainer"
+                class="riwayat-container"
+            >
+                -
+            </div>
+
+        </section>
+
+
+        <!-- =================================================
+             PAGE LAPORAN
+        ================================================== -->
+        <section id="page-laporan" class="page">
+
+            <div class="page-title">
+
+                <div>
+                    <h2>Laporan</h2>
+                    <p>Laporan penjualan dan keuntungan</p>
+                </div>
+
+            </div>
+
+
+            <!-- LAPORAN HARIAN -->
+            <div class="report-section">
+
+                <div class="section-heading">
+
+                    <div>
+                        <h3>📅 Laporan Harian</h3>
+                    </div>
+
+                </div>
+
+                <div class="filter-card">
+
+                    <label for="laporanTanggal">
+                        Pilih tanggal
+                    </label>
+
+                    <input
+                        type="date"
+                        id="laporanTanggal"
+                        onchange="renderLaporanHarian()"
+                    >
+
+                </div>
+
+
+                <div class="report-summary">
+
+                    <div>
+                        <span>Omzet</span>
+                        <strong id="laporanHarianOmzet">
+                            Rp0
+                        </strong>
+                    </div>
+
+                    <div>
+                        <span>HPP</span>
+                        <strong id="laporanHarianHPP">
+                            Rp0
+                        </strong>
+                    </div>
+
+                    <div>
+                        <span>Laba</span>
+                        <strong id="laporanHarianLaba">
+                            Rp0
+                        </strong>
+                    </div>
+
+                </div>
+
+
+                <div class="table-wrapper">
+
+                    <table>
+
+                        <thead>
+                            <tr>
+                                <th>Waktu</th>
+                                <th>Item</th>
+                                <th>Total</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+
+                        <tbody id="tabelLaporanHarian">
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+            </div>
+
+
+            <!-- LAPORAN BULANAN -->
+            <div class="report-section">
+
+                <div class="section-heading">
+
+                    <div>
+                        <h3>📆 Laporan Bulanan</h3>
+                    </div>
+
+                </div>
+
+                <div class="filter-card">
+
+                    <label for="laporanBulan">
+                        Pilih bulan
+                    </label>
+
+                    <input
+                        type="month"
+                        id="laporanBulan"
+                        onchange="renderLaporanBulanan()"
+                    >
+
+                </div>
+
+
+                <div class="report-summary">
+
+                    <div>
+                        <span>Omzet</span>
+                        <strong id="laporanBulananOmzet">
+                            Rp0
+                        </strong>
+                    </div>
+
+                    <div>
+                        <span>HPP</span>
+                        <strong id="laporanBulananHPP">
+                            Rp0
+                        </strong>
+                    </div>
+
+                    <div>
+                        <span>Laba</span>
+                        <strong id="laporanBulananLaba">
+                            Rp0
+                        </strong>
+                    </div>
+
+                </div>
+
+
+                <div class="table-wrapper">
+
+                    <table>
+
+                        <thead>
+                            <tr>
+                                <th>Tanggal</th>
+                                <th>Transaksi</th>
+                                <th>Omzet</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+
+                        <tbody id="tabelLaporanBulanan">
+                        </tbody>
+
+                    </table>
+
                 </div>
 
             </div>
 
         </section>
 
-    </main>
 
+        <!-- =================================================
+             PAGE HPP
+        ================================================== -->
+        <section id="page-hpp" class="page">
 
-    <!-- ==================================================
-         HALAMAN LAPORAN
-    ================================================== -->
+            <div class="page-title">
 
-    <main
-        id="page-laporan"
-        class="page"
-    >
-
-        <div class="page-heading">
-
-            <div>
-                <h2>📈 Laporan</h2>
-                <p>Riwayat penjualan Sate Taichan RIA</p>
-            </div>
-
-        </div>
-
-
-        <section class="report-section">
-
-            <h3>📅 Laporan Bulanan</h3>
-
-            <div class="table-scroll">
-
-                <table class="report-table">
-
-                    <thead>
-                        <tr>
-                            <th>Bulan</th>
-                            <th>Omzet</th>
-                            <th>Aksi</th>
-                        </tr>
-                    </thead>
-
-                    <tbody id="body-laporan-bulanan">
-
-                        <tr>
-                            <td colspan="3">
-                                Memuat...
-                            </td>
-                        </tr>
-
-                    </tbody>
-
-                </table>
+                <div>
+                    <h2>HPP</h2>
+                    <p>Harga pokok penjualan per item</p>
+                </div>
 
             </div>
 
-        </section>
 
+            <div class="info-card">
 
-        <section class="report-section">
+                <div class="info-icon">
+                    📦
+                </div>
 
-            <h3>📆 Laporan Harian</h3>
+                <div>
+                    <strong>Pengaturan HPP</strong>
 
-            <div class="table-scroll">
-
-                <table class="report-table">
-
-                    <thead>
-
-                        <tr>
-                            <th>Tanggal</th>
-                            <th>Omzet</th>
-                            <th>Aksi</th>
-                        </tr>
-
-                    </thead>
-
-                    <tbody id="body-laporan-harian">
-
-                        <tr>
-                            <td colspan="3">
-                                Memuat...
-                            </td>
-                        </tr>
-
-                    </tbody>
-
-                </table>
+                    <p>
+                        Masukkan biaya modal per item.
+                        Data ini digunakan untuk menghitung
+                        HPP dan laba kotor.
+                    </p>
+                </div>
 
             </div>
+
+
+            <div id="hppContainer" class="hpp-container">
+                <!-- dibuat oleh JS -->
+            </div>
+
+
+            <button
+                type="button"
+                class="btn-primary btn-save-hpp"
+                onclick="simpanHPP()"
+            >
+                💾 Simpan HPP
+            </button>
 
         </section>
 
     </main>
 
 
-    <!-- ==================================================
-         HALAMAN HPP
-    ================================================== -->
-
-    <main
-        id="page-hpp"
-        class="page"
-    >
-
-        <div class="page-heading">
-
-            <div>
-                <h2>⚙️ HPP Menu</h2>
-
-                <p>
-                    Isi biaya produksi setiap menu
-                </p>
-
-            </div>
-
-        </div>
-
-
-        <div class="hpp-info">
-
-            <strong>💡 Apa itu HPP?</strong>
-
-            <p>
-                HPP adalah perkiraan biaya yang dikeluarkan
-                untuk menghasilkan satu produk.
-                Masukkan biaya bahan dan produksi per porsi/item.
-            </p>
-
-        </div>
-
-
-        <section class="hpp-list">
-
-            <div id="container-hpp"></div>
-
-        </section>
-
-
-        <button
-            class="btn-save-hpp"
-            onclick="simpanSemuaHPP()"
-        >
-            💾 Simpan HPP
-        </button>
-
-
-        <div class="hpp-note">
-
-            HPP tersimpan di perangkat kasir ini.
-            Anda dapat mengubahnya kapan saja.
-
-        </div>
-
-    </main>
-
-
-    <!-- ==================================================
-         NAVIGASI BAWAH
-    ================================================== -->
-
+    <!-- =====================================================
+         BOTTOM NAVIGATION
+    ====================================================== -->
     <nav class="bottom-nav">
 
         <button
+            type="button"
             class="nav-item active"
             data-page="kasir"
-            onclick="bukaHalaman('kasir')"
+            onclick="pindahHalaman('kasir')"
         >
-
-            <span>🧾</span>
+            <span>🛒</span>
             <small>Kasir</small>
-
         </button>
 
 
         <button
+            type="button"
             class="nav-item"
             data-page="dashboard"
-            onclick="bukaHalaman('dashboard')"
+            onclick="pindahHalaman('dashboard')"
         >
-
             <span>📊</span>
             <small>Dashboard</small>
-
         </button>
 
 
         <button
+            type="button"
+            class="nav-item"
+            data-page="riwayat"
+            onclick="pindahHalaman('riwayat')"
+        >
+            <span>🧾</span>
+            <small>Riwayat</small>
+        </button>
+
+
+        <button
+            type="button"
             class="nav-item"
             data-page="laporan"
-            onclick="bukaHalaman('laporan')"
+            onclick="pindahHalaman('laporan')"
         >
-
-            <span>📈</span>
+            <span>📑</span>
             <small>Laporan</small>
-
         </button>
 
 
         <button
+            type="button"
             class="nav-item"
             data-page="hpp"
-            onclick="bukaHalaman('hpp')"
+            onclick="pindahHalaman('hpp')"
         >
-
-            <span>⚙️</span>
+            <span>📦</span>
             <small>HPP</small>
-
         </button>
 
     </nav>
@@ -608,20 +840,20 @@
 </div>
 
 
-<!-- ======================================================
-     MODAL JUMLAH
-====================================================== -->
-
+<!-- =========================================================
+     MODAL QTY
+========================================================= -->
 <div
-    id="popup-qty"
-    class="modal"
+    id="qtyModal"
+    class="modal-overlay hidden"
+    onclick="tutupModalJikaOverlay(event, 'qtyModal')"
 >
 
-    <div class="modal-content">
+    <div class="modal-box qty-modal">
 
         <button
             class="modal-close"
-            onclick="tutupModal()"
+            onclick="tutupModal('qtyModal')"
         >
             ×
         </button>
@@ -630,28 +862,30 @@
             🍢
         </div>
 
-        <h3 id="modal-menu-title">
-            Jumlah Pesanan
+        <h3 id="qtyMenuNama">
+            Menu
         </h3>
 
-        <div class="qty-input-group">
+        <p id="qtyMenuHarga">
+            Rp0
+        </p>
+
+
+        <div class="qty-control">
 
             <button
-                class="btn-qty"
+                type="button"
                 onclick="ubahQty(-1)"
             >
                 −
             </button>
 
-            <input
-                type="number"
-                id="modal-qty"
-                value="1"
-                min="1"
-            >
+            <strong id="qtyValue">
+                1
+            </strong>
 
             <button
-                class="btn-qty"
+                type="button"
                 onclick="ubahQty(1)"
             >
                 +
@@ -659,114 +893,207 @@
 
         </div>
 
-        <div class="modal-actions">
 
-            <button
-                class="btn-secondary"
-                onclick="tutupModal()"
-            >
-                Batal
-            </button>
-
-            <button
-                class="btn-primary"
-                onclick="konfirmasiTambahKeKeranjang()"
-            >
-                Tambah
-            </button>
-
-        </div>
+        <button
+            type="button"
+            class="btn-primary"
+            onclick="tambahKeKeranjang()"
+        >
+            Tambahkan
+        </button>
 
     </div>
 
 </div>
 
 
-<!-- ======================================================
+<!-- =========================================================
      MODAL PEMBAYARAN
-====================================================== -->
-
+========================================================= -->
 <div
-    id="popup-pembayaran"
-    class="modal"
+    id="paymentModal"
+    class="modal-overlay hidden"
+    onclick="tutupModalJikaOverlay(event, 'paymentModal')"
 >
 
-    <div class="modal-content payment-modal">
+    <div class="modal-box">
 
         <button
             class="modal-close"
-            onclick="tutupModalPembayaran()"
+            onclick="tutupModal('paymentModal')"
         >
             ×
         </button>
 
         <div class="modal-icon">
-            💰
+            💳
         </div>
 
         <h3>Pembayaran</h3>
 
-
         <div class="payment-total">
 
-            <span>Total Tagihan</span>
+            <span>Total Bayar</span>
 
-            <strong id="pay-txt-tagihan">
-                Rp 0
+            <strong id="paymentTotal">
+                Rp0
             </strong>
 
         </div>
 
 
-        <label
-            class="input-label"
-            for="pay-input-nominal"
-        >
+        <label for="uangDiterima">
             Uang Diterima
         </label>
 
         <input
             type="number"
-            id="pay-input-nominal"
-            class="input-bayar"
-            placeholder="Masukkan nominal"
+            id="uangDiterima"
             inputmode="numeric"
-            oninput="hitungKembalianLive()"
+            placeholder="Masukkan nominal"
+            oninput="hitungKembalian()"
         >
-
-
-        <div
-            id="pay-container-pintasan"
-            class="quick-money"
-        ></div>
 
 
         <div class="change-box">
 
-            <span>Uang Kembalian</span>
+            <span>Kembalian</span>
 
-            <strong id="pay-txt-kembalian">
-                Rp 0
+            <strong id="uangKembalian">
+                Rp0
             </strong>
 
         </div>
 
 
+        <button
+            type="button"
+            class="btn-primary"
+            onclick="prosesPembayaran()"
+        >
+            ✅ Simpan Transaksi
+        </button>
+
+    </div>
+
+</div>
+
+
+<!-- =========================================================
+     MODAL DETAIL TRANSAKSI
+========================================================= -->
+<div
+    id="detailModal"
+    class="modal-overlay hidden"
+    onclick="tutupModalJikaOverlay(event, 'detailModal')"
+>
+
+    <div class="modal-box detail-modal">
+
+        <button
+            class="modal-close"
+            onclick="tutupModal('detailModal')"
+        >
+            ×
+        </button>
+
+        <div class="modal-icon">
+            🧾
+        </div>
+
+        <h3>Detail Transaksi</h3>
+
+        <div id="detailTransaksiContent">
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- =========================================================
+     MODAL HAPUS TRANSAKSI
+========================================================= -->
+<div
+    id="deleteModal"
+    class="modal-overlay hidden"
+    onclick="tutupModalJikaOverlay(event, 'deleteModal')"
+>
+
+    <div class="modal-box delete-modal">
+
+        <button
+            class="modal-close"
+            onclick="tutupModal('deleteModal')"
+        >
+            ×
+        </button>
+
+        <div class="delete-warning-icon">
+            ⚠️
+        </div>
+
+        <h3>Hapus Transaksi?</h3>
+
+        <p class="delete-warning-text">
+            Transaksi ini akan dihapus permanen dari database.
+        </p>
+
+
+        <div
+            id="deleteTransactionPreview"
+            class="delete-preview"
+        >
+        </div>
+
+
+        <label for="deletePin">
+            PIN Keamanan
+        </label>
+
+        <div class="password-wrapper">
+
+            <input
+                type="password"
+                id="deletePin"
+                inputmode="numeric"
+                placeholder="Masukkan PIN"
+                onkeydown="if(event.key==='Enter') konfirmasiHapusTransaksi()"
+            >
+
+            <button
+                type="button"
+                class="btn-show-password"
+                onclick="toggleDeletePin()"
+            >
+                👁️
+            </button>
+
+        </div>
+
+
+        <p
+            id="deleteError"
+            class="delete-error"
+        ></p>
+
+
         <div class="modal-actions">
 
             <button
+                type="button"
                 class="btn-secondary"
-                onclick="tutupModalPembayaran()"
+                onclick="tutupModal('deleteModal')"
             >
                 Batal
             </button>
 
             <button
-                class="btn-success"
-                id="pay-btn-eksekusi"
-                onclick="prosesPembayaranAkhir()"
+                type="button"
+                class="btn-danger"
+                onclick="konfirmasiHapusTransaksi()"
             >
-                Simpan
+                🗑️ Hapus Permanen
             </button>
 
         </div>
@@ -776,55 +1103,24 @@
 </div>
 
 
-<!-- ======================================================
-     MODAL DETAIL TRANSAKSI
-====================================================== -->
-
+<!-- =========================================================
+     TOAST
+========================================================= -->
 <div
-    id="popup-detail"
-    class="modal"
+    id="toast"
+    class="toast"
 >
-
-    <div class="modal-content detail-modal">
-
-        <button
-            class="modal-close"
-            onclick="tutupModalDetail()"
-        >
-            ×
-        </button>
-
-        <h3 id="modal-detail-title">
-            Detail Transaksi
-        </h3>
-
-        <ul
-            id="list-riwayat-transaksi"
-            class="riwayat-list"
-        ></ul>
-
-        <button
-            class="btn-secondary full-width"
-            onclick="tutupModalDetail()"
-        >
-            Tutup
-        </button>
-
-    </div>
-
+    <span id="toastMessage">
+        -
+    </span>
 </div>
 
-
-<!-- ======================================================
-     FIREBASE
-====================================================== -->
 
 <script type="module">
 
     import {
         initializeApp
-    }
-    from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
 
 
     import {
@@ -834,13 +1130,13 @@
         onSnapshot,
         doc,
         deleteDoc
-    }
-    from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+    } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
 
     const firebaseConfig = {
 
-        apiKey: "AIzaSyDO1azSolglCV-xJrlmZ5WKWb7Cec9ZrZI",
+        apiKey:
+            "AIzaSyDO1azSolglCV-xJrlmZ5WKW7Cec9ZrZI",
 
         authDomain:
             "sate-taichan-pos.firebaseapp.com",
@@ -858,34 +1154,32 @@
             "1:753807128515:web:91ef30cdb7dd2fa54eaf76",
 
         measurementId:
-            "G-4QB3L8971E"
+            "G-4QB3L8971"
     };
 
 
-    const app = initializeApp(firebaseConfig);
+    const appFirebase =
+        initializeApp(firebaseConfig);
 
-    const db = getFirestore(app);
+
+    const db =
+        getFirestore(appFirebase);
 
 
     window.db = db;
 
     window.collection = collection;
-
     window.addDoc = addDoc;
-
     window.onSnapshot = onSnapshot;
 
     window.docRef = doc;
-
     window.deleteDoc = deleteDoc;
 
 
-    /*
-     * app.js sengaja dimuat setelah Firebase siap.
-     */
+    const script =
+        document.createElement("script");
 
-    const script = document.createElement("script");
-
+    script.type = "module";
     script.src = "app.js";
 
     document.body.appendChild(script);
