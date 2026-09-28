@@ -2,216 +2,800 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>POS Sate Taichan Ria</title>
-    <link rel="manifest" href="manifest.json">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+    >
+
     <meta name="theme-color" content="#ff4e50">
     <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="Sate Taichan Ria">
+
+    <title>POS Sate Taichan Ria</title>
+
+    <link rel="manifest" href="manifest.json">
     <link rel="stylesheet" href="style.css">
-    
+
     <style>
-        /* Style popup/modal input kuantitas & detail laporan */
+        /* ==========================================================
+           MODAL UMUM
+        ========================================================== */
+
         .modal {
             display: none;
             position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.5);
-            justify-content: center; align-items: center;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            justify-content: center;
+            align-items: center;
             z-index: 1000;
+            padding: 15px;
         }
+
         .modal-content {
-            background: white; padding: 20px; border-radius: 12px;
-            width: 95%; max-width: 450px; text-align: center;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.2);
-            max-height: 85vh; overflow-y: auto;
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            width: 95%;
+            max-width: 450px;
+            text-align: center;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+            max-height: 85vh;
+            overflow-y: auto;
         }
-        .modal-content h3 { margin-bottom: 15px; color: #333; }
+
+        .modal-content h3 {
+            margin-bottom: 15px;
+            color: #333;
+        }
+
         .qty-input-group {
-            display: flex; justify-content: center; align-items: center; gap: 15px; margin-bottom: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 20px;
         }
+
         .btn-qty {
-            background: #e2e8f0; border: none; font-size: 1.5rem; font-weight: bold;
-            width: 45px; height: 45px; border-radius: 50%; cursor: pointer;
+            background: #e2e8f0;
+            border: none;
+            font-size: 1.5rem;
+            font-weight: bold;
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            cursor: pointer;
         }
+
         #modal-qty {
-            width: 60px; text-align: center; font-size: 1.3rem; font-weight: bold; border: none; outline: none;
+            width: 60px;
+            text-align: center;
+            font-size: 1.3rem;
+            font-weight: bold;
+            border: none;
+            outline: none;
         }
-        .modal-actions { display: flex; gap: 10px; margin-top: 15px; }
-        .btn-cancel { background: #cbd5e1; color: #333; border: none; flex: 1; padding: 12px; border-radius: 8px; font-weight: bold; cursor: pointer; }
-        .btn-confirm { background: #ff4e50; color: white; border: none; flex: 1; padding: 12px; border-radius: 8px; font-weight: bold; cursor: pointer; }
 
-        /* Style Laporan Umum (Bulanan & Harian) */
+        .modal-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .btn-cancel {
+            background: #cbd5e1;
+            color: #333;
+            border: none;
+            flex: 1;
+            padding: 12px;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .btn-confirm {
+            background: #ff4e50;
+            color: white;
+            border: none;
+            flex: 1;
+            padding: 12px;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        /* ==========================================================
+           LAPORAN
+        ========================================================== */
+
         .report-section {
-            background-color: white; padding: 15px; border-radius: 12px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.03); border: 1.5px solid #edf2f7; margin-top: 15px;
+            background-color: white;
+            padding: 15px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+            border: 1.5px solid #edf2f7;
+            margin-top: 15px;
         }
-        .report-section h2 { font-size: 1.1rem; margin-bottom: 10px; color: #444; }
-        .table-responsive { width: 100%; overflow-x: auto; }
-        .report-table { width: 100%; border-collapse: collapse; text-align: left; font-size: 0.9rem; }
-        .report-table th, .report-table td { padding: 10px; border-bottom: 1px solid #e2e8f0; }
-        .report-table th { background-color: #f7f9fa; color: #4a5568; font-weight: 600; }
-        .report-table tr:hover { background-color: #f8fafc; }
-        .text-right { text-align: right; }
 
-        /* Tombol Aksi Laporan */
-        .btn-detail { background: #ebf8ff; color: #3182ce; border: none; padding: 5px 10px; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 0.8rem; }
-        .btn-hapus-cloud { background: #fff5f5; color: #e53e3e; border: none; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 0.8rem; }
-        
-        /* List Detail Riwayat */
-        .riwayat-list { list-style: none; text-align: left; margin-bottom: 15px; }
-        .riwayat-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px dashed #e2e8f0; font-size: 0.85rem; }
+        .report-section h2 {
+            font-size: 1.1rem;
+            margin-bottom: 10px;
+            color: #444;
+        }
 
-        /* Gaya Khusus Modal Bayar (Kalkulator) */
-        .btn-pecahan { background: #edf2f7; border: 1px solid #cbd5e1; padding: 10px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 0.9rem; color: #2d3748; }
-        .btn-pecahan:hover { background: #e2e8f0; }
-        .input-bayar { width: 100%; padding: 12px; font-size: 1.4rem; font-weight: bold; border: 2px solid #cbd5e1; border-radius: 8px; text-align: center; outline: none; margin-top: 5px; }
-        .input-bayar:focus { border-color: #ff4e50; }
+        .table-responsive {
+            width: 100%;
+            overflow-x: auto;
+        }
+
+        .report-table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+            font-size: 0.9rem;
+        }
+
+        .report-table th,
+        .report-table td {
+            padding: 10px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .report-table th {
+            background-color: #f7f9fa;
+            color: #4a5568;
+            font-weight: 600;
+        }
+
+        .report-table tr:hover {
+            background-color: #f8fafc;
+        }
+
+        .text-right {
+            text-align: right;
+        }
+
+        .btn-detail {
+            background: #ebf8ff;
+            color: #3182ce;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.8rem;
+        }
+
+        .btn-hapus-cloud {
+            background: #fff5f5;
+            color: #e53e3e;
+            border: none;
+            padding: 4px 8px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 0.8rem;
+        }
+
+        /* ==========================================================
+           RIWAYAT
+        ========================================================== */
+
+        .riwayat-list {
+            list-style: none;
+            text-align: left;
+            margin-bottom: 15px;
+        }
+
+        .riwayat-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px dashed #e2e8f0;
+            font-size: 0.85rem;
+            gap: 10px;
+        }
+
+        /* ==========================================================
+           KALKULATOR PEMBAYARAN
+        ========================================================== */
+
+        .btn-pecahan {
+            background: #edf2f7;
+            border: 1px solid #cbd5e1;
+            padding: 10px;
+            border-radius: 6px;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 0.9rem;
+            color: #2d3748;
+        }
+
+        .btn-pecahan:hover {
+            background: #e2e8f0;
+        }
+
+        .input-bayar {
+            width: 100%;
+            padding: 12px;
+            font-size: 1.4rem;
+            font-weight: bold;
+            border: 2px solid #cbd5e1;
+            border-radius: 8px;
+            text-align: center;
+            outline: none;
+            margin-top: 5px;
+        }
+
+        .input-bayar:focus {
+            border-color: #ff4e50;
+        }
     </style>
 </head>
+
 <body>
+
+    <!-- ==========================================================
+         LAYAR LOGIN
+    ========================================================== -->
+
+    <div id="login-screen">
+
+        <div class="login-card">
+
+            <div class="login-logo">
+                🔥
+            </div>
+
+            <div class="login-brand">
+                SATE TAICHAN RIA
+            </div>
+
+            <div class="login-subtitle">
+                SISTEM KASIR
+            </div>
+
+            <div class="login-divider"></div>
+
+            <label for="login-password">
+                🔒 Password Kasir
+            </label>
+
+            <div class="password-wrapper">
+
+                <input
+                    type="password"
+                    id="login-password"
+                    placeholder="Masukkan password"
+                    autocomplete="current-password"
+                    autocapitalize="none"
+                    spellcheck="false"
+                >
+
+                <button
+                    type="button"
+                    id="toggle-password"
+                    aria-label="Tampilkan password"
+                >
+                    👁️
+                </button>
+
+            </div>
+
+            <div id="login-error">
+                Password salah. Silakan coba lagi.
+            </div>
+
+            <button
+                type="button"
+                id="btn-login"
+            >
+                MASUK KE POS
+            </button>
+
+            <div class="login-footer">
+                Sate Taichan Ria 🍢🔥
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- ==========================================================
+         APLIKASI POS
+    ========================================================== -->
+
     <div id="app">
+
         <header>
-            <h1>Sate Taichan Ria 🍢🔥</h1>
-            <div id="monitor-omzet">Total Omzet Hari Ini: <span id="total-omzet">Rp 0</span></div>
+
+            <div class="header-top">
+
+                <div>
+                    <h1>Sate Taichan Ria 🍢🔥</h1>
+
+                    <div id="monitor-omzet">
+                        Total Omzet Hari Ini:
+                        <span id="total-omzet">Rp 0</span>
+                    </div>
+                </div>
+
+                <button
+                    id="btn-kunci-pos"
+                    onclick="kunciPOS()"
+                    title="Kunci POS"
+                >
+                    🔒 Kunci
+                </button>
+
+            </div>
+
         </header>
 
+
         <main class="kasir-container">
+
+            <!-- MENU -->
+
             <section class="menu-section">
+
                 <h2>Daftar Menu 📋</h2>
-                <div class="menu-grid" id="container-menu">
-                    </div>
+
+                <div
+                    class="menu-grid"
+                    id="container-menu"
+                ></div>
+
             </section>
+
+
+            <!-- KERANJANG -->
 
             <section class="cart-section">
+
                 <h2>Keranjang Belanja</h2>
-                <ul id="daftar-keranjang">
-                    </ul>
-                <div class="total">Total: <span id="total-harga">Rp 0</span></div>
-                <button id="btn-bayar" onclick="bukaModalPembayaran()">Bayar & Simpan ke Cloud</button>
+
+                <ul id="daftar-keranjang"></ul>
+
+                <div class="total">
+                    Total:
+                    <span id="total-harga">Rp 0</span>
+                </div>
+
+                <button
+                    id="btn-bayar"
+                    onclick="bukaModalPembayaran()"
+                >
+                    Bayar & Simpan ke Cloud
+                </button>
+
             </section>
 
+
+            <!-- LAPORAN BULANAN -->
+
             <section class="report-section">
+
                 <h2>Laporan Omzet Bulanan 📅</h2>
+
                 <div class="table-responsive">
+
                     <table class="report-table">
+
                         <thead>
+
                             <tr>
                                 <th>Bulan & Tahun</th>
-                                <th class="text-right">Total Omzet</th>
-                                <th style="text-align: center;">Aksi</th>
+
+                                <th class="text-right">
+                                    Total Omzet
+                                </th>
+
+                                <th style="text-align:center;">
+                                    Aksi
+                                </th>
                             </tr>
+
                         </thead>
+
                         <tbody id="body-laporan-bulanan">
+
                             <tr>
-                                <td colspan="3" style="text-align: center; color: #718096;">Memuat data laporan bulanan...</td>
+
+                                <td
+                                    colspan="3"
+                                    style="text-align:center;color:#718096;"
+                                >
+                                    Memuat data laporan bulanan...
+                                </td>
+
                             </tr>
+
                         </tbody>
+
                     </table>
+
                 </div>
+
             </section>
+
+
+            <!-- LAPORAN HARIAN -->
 
             <section class="report-section">
+
                 <h2>Laporan Omzet Harian 📅</h2>
+
                 <div class="table-responsive">
+
                     <table class="report-table">
+
                         <thead>
+
                             <tr>
+
                                 <th>Tanggal</th>
-                                <th class="text-right">Total Omzet</th>
-                                <th style="text-align: center;">Aksi</th>
+
+                                <th class="text-right">
+                                    Total Omzet
+                                </th>
+
+                                <th style="text-align:center;">
+                                    Aksi
+                                </th>
+
                             </tr>
+
                         </thead>
+
                         <tbody id="body-laporan-harian">
+
                             <tr>
-                                <td colspan="3" style="text-align: center; color: #718096;">Memuat data laporan harian...</td>
+
+                                <td
+                                    colspan="3"
+                                    style="text-align:center;color:#718096;"
+                                >
+                                    Memuat data laporan harian...
+                                </td>
+
                             </tr>
+
                         </tbody>
+
                     </table>
+
                 </div>
+
             </section>
+
         </main>
+
     </div>
+
+
+    <!-- ==========================================================
+         MODAL JUMLAH
+    ========================================================== -->
 
     <div id="popup-qty" class="modal">
+
         <div class="modal-content">
-            <h3 id="modal-menu-title">Jumlah Pesanan</h3>
+
+            <h3 id="modal-menu-title">
+                Jumlah Pesanan
+            </h3>
+
             <div class="qty-input-group">
-                <button class="btn-qty" onclick="ubahQty(-1)">-</button>
-                <input type="number" id="modal-qty" value="1" min="1">
-                <button class="btn-qty" onclick="ubahQty(1)">+</button>
+
+                <button
+                    class="btn-qty"
+                    onclick="ubahQty(-1)"
+                >
+                    -
+                </button>
+
+                <input
+                    type="number"
+                    id="modal-qty"
+                    value="1"
+                    min="1"
+                >
+
+                <button
+                    class="btn-qty"
+                    onclick="ubahQty(1)"
+                >
+                    +
+                </button>
+
             </div>
+
             <div class="modal-actions">
-                <button class="btn-cancel" onclick="tutupModal()">Batal</button>
-                <button class="btn-confirm" onclick="konfirmasiTambahKeKeranjang()">Tambah</button>
+
+                <button
+                    class="btn-cancel"
+                    onclick="tutupModal()"
+                >
+                    Batal
+                </button>
+
+                <button
+                    class="btn-confirm"
+                    onclick="konfirmasiTambahKeKeranjang()"
+                >
+                    Tambah
+                </button>
+
             </div>
+
         </div>
+
     </div>
+
+
+    <!-- ==========================================================
+         MODAL PEMBAYARAN
+    ========================================================== -->
 
     <div id="popup-pembayaran" class="modal">
-        <div class="modal-content" style="max-width: 400px;">
-            <h3>Kalkulator Pembayaran 💰</h3>
-            
-            <div style="text-align: left; margin-bottom: 15px; background: #f7fafc; padding: 12px; border-radius: 8px; border: 1px dashed #cbd5e1;">
-                <div style="font-size: 0.85rem; color: #718096;">TOTAL TAGIHAN:</div>
-                <div id="pay-txt-tagihan" style="font-size: 1.6rem; font-weight: bold; color: #2d3748;">Rp 0</div>
-            </div>
 
-            <div style="text-align: left; margin-bottom: 15px;">
-                <label style="font-size: 0.8rem; font-weight: bold; color: #4a5568;">UANG DITERIMA (RP):</label>
-                <input type="number" id="pay-input-nominal" class="input-bayar" placeholder="0" oninput="hitungKembalianLive()">
-            </div>
+        <div
+            class="modal-content"
+            style="max-width:400px;"
+        >
 
-            <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-bottom: 15px;" id="pay-container-pintasan">
+            <h3>
+                Kalkulator Pembayaran 💰
+            </h3>
+
+            <div
+                style="
+                    text-align:left;
+                    margin-bottom:15px;
+                    background:#f7fafc;
+                    padding:12px;
+                    border-radius:8px;
+                    border:1px dashed #cbd5e1;
+                "
+            >
+
+                <div
+                    style="
+                        font-size:0.85rem;
+                        color:#718096;
+                    "
+                >
+                    TOTAL TAGIHAN:
                 </div>
 
-            <div style="text-align: left; margin-bottom: 20px; background: #fff5f5; padding: 12px; border-radius: 8px; border: 1px solid #fed7d7;">
-                <div style="font-size: 0.85rem; color: #e53e3e; font-weight: bold;">UANG KEMBALIAN:</div>
-                <div id="pay-txt-kembalian" style="font-size: 1.6rem; font-weight: bold; color: #e53e3e;">Rp 0</div>
+                <div
+                    id="pay-txt-tagihan"
+                    style="
+                        font-size:1.6rem;
+                        font-weight:bold;
+                        color:#2d3748;
+                    "
+                >
+                    Rp 0
+                </div>
+
             </div>
+
+
+            <div
+                style="
+                    text-align:left;
+                    margin-bottom:15px;
+                "
+            >
+
+                <label
+                    style="
+                        font-size:0.8rem;
+                        font-weight:bold;
+                        color:#4a5568;
+                    "
+                >
+                    UANG DITERIMA (RP):
+                </label>
+
+                <input
+                    type="number"
+                    id="pay-input-nominal"
+                    class="input-bayar"
+                    placeholder="0"
+                    oninput="hitungKembalianLive()"
+                    inputmode="numeric"
+                >
+
+            </div>
+
+
+            <div
+                style="
+                    display:grid;
+                    grid-template-columns:repeat(2,1fr);
+                    gap:8px;
+                    margin-bottom:15px;
+                "
+                id="pay-container-pintasan"
+            ></div>
+
+
+            <div
+                style="
+                    text-align:left;
+                    margin-bottom:20px;
+                    background:#fff5f5;
+                    padding:12px;
+                    border-radius:8px;
+                    border:1px solid #fed7d7;
+                "
+            >
+
+                <div
+                    style="
+                        font-size:0.85rem;
+                        color:#e53e3e;
+                        font-weight:bold;
+                    "
+                >
+                    UANG KEMBALIAN:
+                </div>
+
+                <div
+                    id="pay-txt-kembalian"
+                    style="
+                        font-size:1.6rem;
+                        font-weight:bold;
+                        color:#e53e3e;
+                    "
+                >
+                    Rp 0
+                </div>
+
+            </div>
+
 
             <div class="modal-actions">
-                <button class="btn-cancel" onclick="tutupModalPembayaran()">Batal</button>
-                <button class="btn-confirm" id="pay-btn-eksekusi" onclick="prosesPembayaranAkhir()" style="background: #10b981;">Simpan Transaksi</button>
+
+                <button
+                    class="btn-cancel"
+                    onclick="tutupModalPembayaran()"
+                >
+                    Batal
+                </button>
+
+                <button
+                    class="btn-confirm"
+                    id="pay-btn-eksekusi"
+                    onclick="prosesPembayaranAkhir()"
+                    style="background:#10b981;"
+                >
+                    Simpan Transaksi
+                </button>
+
             </div>
+
         </div>
+
     </div>
+
+
+    <!-- ==========================================================
+         MODAL DETAIL
+    ========================================================== -->
 
     <div id="popup-detail" class="modal">
+
         <div class="modal-content">
-            <h3 id="modal-detail-title">Detail Transaksi</h3>
-            <ul id="list-riwayat-transaksi" class="riwayat-list">
-                </ul>
-            <button class="btn-cancel" style="width: 100%;" onclick="tutupModalDetail()">Tutup</button>
+
+            <h3 id="modal-detail-title">
+                Detail Transaksi
+            </h3>
+
+            <ul
+                id="list-riwayat-transaksi"
+                class="riwayat-list"
+            ></ul>
+
+            <button
+                class="btn-cancel"
+                style="width:100%;"
+                onclick="tutupModalDetail()"
+            >
+                Tutup
+            </button>
+
         </div>
+
     </div>
 
+
+    <!-- ==========================================================
+         FIREBASE
+    ========================================================== -->
+
     <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getFirestore, collection, addDoc, onSnapshot, doc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+        import {
+            initializeApp
+        } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+
+        import {
+            getFirestore,
+            collection,
+            addDoc,
+            onSnapshot,
+            doc,
+            deleteDoc
+        } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
 
         const firebaseConfig = {
-            apiKey: "AIzaSyDO1azSolglCV-xJrlmZ5WKWb7Cec9ZrZI",
-            authDomain: "sate-taichan-pos.firebaseapp.com",
-            projectId: "sate-taichan-pos",
-            storageBucket: "sate-taichan-pos.firebasestorage.app",
-            messagingSenderId: "753807128515",
-            appId: "1:753807128515:web:91ef30cdb7dd2fa54eaf76",
-            measurementId: "G-4QB3L8971E"
+
+            apiKey:
+                "AIzaSyDO1azSolglCV-xJrlmZ5WKWb7Cec9ZrZI",
+
+            authDomain:
+                "sate-taichan-pos.firebaseapp.com",
+
+            projectId:
+                "sate-taichan-pos",
+
+            storageBucket:
+                "sate-taichan-pos.firebasestorage.app",
+
+            messagingSenderId:
+                "753807128515",
+
+            appId:
+                "1:753807128515:web:91ef30cdb7dd2fa54eaf76",
+
+            measurementId:
+                "G-4QB3L8971"
+
         };
 
+
         const app = initializeApp(firebaseConfig);
+
         const db = getFirestore(app);
 
-        window.db = db;
-        window.collection = collection;
-        window.addDoc = addDoc;
-        window.onSnapshot = onSnapshot;
-        window.docRef = doc;         
-        window.deleteDoc = deleteDoc; 
 
-        const script = document.createElement('script');
-        script.src = 'app.js';
+        window.db = db;
+
+        window.collection = collection;
+
+        window.addDoc = addDoc;
+
+        window.onSnapshot = onSnapshot;
+
+        window.docRef = doc;
+
+        window.deleteDoc = deleteDoc;
+
+
+        /*
+         * app.js hanya dijalankan setelah Firebase siap.
+         */
+
+        const script = document.createElement("script");
+
+        script.src = "app.js";
+
         document.body.appendChild(script);
+
     </script>
+
 </body>
 </html>
