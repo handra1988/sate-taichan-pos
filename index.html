@@ -8,264 +8,42 @@
         content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
     >
 
-    <meta name="theme-color" content="#ff4e50">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="default">
-    <meta name="apple-mobile-web-app-title" content="Sate Taichan Ria">
-
-    <title>POS Sate Taichan Ria</title>
+    <title>POS Sate Taichan RIA</title>
 
     <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#ff4e50">
+
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Sate Taichan RIA">
+
     <link rel="stylesheet" href="style.css">
-
-    <style>
-        /* ==========================================================
-           MODAL UMUM
-        ========================================================== */
-
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.5);
-            justify-content: center;
-            align-items: center;
-            z-index: 1000;
-            padding: 15px;
-        }
-
-        .modal-content {
-            background: white;
-            padding: 20px;
-            border-radius: 12px;
-            width: 95%;
-            max-width: 450px;
-            text-align: center;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
-            max-height: 85vh;
-            overflow-y: auto;
-        }
-
-        .modal-content h3 {
-            margin-bottom: 15px;
-            color: #333;
-        }
-
-        .qty-input-group {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 15px;
-            margin-bottom: 20px;
-        }
-
-        .btn-qty {
-            background: #e2e8f0;
-            border: none;
-            font-size: 1.5rem;
-            font-weight: bold;
-            width: 45px;
-            height: 45px;
-            border-radius: 50%;
-            cursor: pointer;
-        }
-
-        #modal-qty {
-            width: 60px;
-            text-align: center;
-            font-size: 1.3rem;
-            font-weight: bold;
-            border: none;
-            outline: none;
-        }
-
-        .modal-actions {
-            display: flex;
-            gap: 10px;
-            margin-top: 15px;
-        }
-
-        .btn-cancel {
-            background: #cbd5e1;
-            color: #333;
-            border: none;
-            flex: 1;
-            padding: 12px;
-            border-radius: 8px;
-            font-weight: bold;
-            cursor: pointer;
-        }
-
-        .btn-confirm {
-            background: #ff4e50;
-            color: white;
-            border: none;
-            flex: 1;
-            padding: 12px;
-            border-radius: 8px;
-            font-weight: bold;
-            cursor: pointer;
-        }
-
-        /* ==========================================================
-           LAPORAN
-        ========================================================== */
-
-        .report-section {
-            background-color: white;
-            padding: 15px;
-            border-radius: 12px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.03);
-            border: 1.5px solid #edf2f7;
-            margin-top: 15px;
-        }
-
-        .report-section h2 {
-            font-size: 1.1rem;
-            margin-bottom: 10px;
-            color: #444;
-        }
-
-        .table-responsive {
-            width: 100%;
-            overflow-x: auto;
-        }
-
-        .report-table {
-            width: 100%;
-            border-collapse: collapse;
-            text-align: left;
-            font-size: 0.9rem;
-        }
-
-        .report-table th,
-        .report-table td {
-            padding: 10px;
-            border-bottom: 1px solid #e2e8f0;
-        }
-
-        .report-table th {
-            background-color: #f7f9fa;
-            color: #4a5568;
-            font-weight: 600;
-        }
-
-        .report-table tr:hover {
-            background-color: #f8fafc;
-        }
-
-        .text-right {
-            text-align: right;
-        }
-
-        .btn-detail {
-            background: #ebf8ff;
-            color: #3182ce;
-            border: none;
-            padding: 5px 10px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-weight: 600;
-            font-size: 0.8rem;
-        }
-
-        .btn-hapus-cloud {
-            background: #fff5f5;
-            color: #e53e3e;
-            border: none;
-            padding: 4px 8px;
-            border-radius: 4px;
-            cursor: pointer;
-            font-weight: bold;
-            font-size: 0.8rem;
-        }
-
-        /* ==========================================================
-           RIWAYAT
-        ========================================================== */
-
-        .riwayat-list {
-            list-style: none;
-            text-align: left;
-            margin-bottom: 15px;
-        }
-
-        .riwayat-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 10px 0;
-            border-bottom: 1px dashed #e2e8f0;
-            font-size: 0.85rem;
-            gap: 10px;
-        }
-
-        /* ==========================================================
-           KALKULATOR PEMBAYARAN
-        ========================================================== */
-
-        .btn-pecahan {
-            background: #edf2f7;
-            border: 1px solid #cbd5e1;
-            padding: 10px;
-            border-radius: 6px;
-            font-weight: bold;
-            cursor: pointer;
-            font-size: 0.9rem;
-            color: #2d3748;
-        }
-
-        .btn-pecahan:hover {
-            background: #e2e8f0;
-        }
-
-        .input-bayar {
-            width: 100%;
-            padding: 12px;
-            font-size: 1.4rem;
-            font-weight: bold;
-            border: 2px solid #cbd5e1;
-            border-radius: 8px;
-            text-align: center;
-            outline: none;
-            margin-top: 5px;
-        }
-
-        .input-bayar:focus {
-            border-color: #ff4e50;
-        }
-    </style>
 </head>
 
 <body>
 
-    <!-- ==========================================================
-         LAYAR LOGIN
-    ========================================================== -->
+<!-- ======================================================
+     LOGIN
+====================================================== -->
 
-    <div id="login-screen">
+<div id="login-screen" class="login-screen">
 
-        <div class="login-card">
+    <div class="login-box">
 
-            <div class="login-logo">
-                🔥
-            </div>
+        <div class="login-logo">
+            🔥
+        </div>
 
-            <div class="login-brand">
-                SATE TAICHAN RIA
-            </div>
+        <h1>Sate Taichan RIA</h1>
 
-            <div class="login-subtitle">
-                SISTEM KASIR
-            </div>
+        <p class="login-subtitle">
+            POS & Dashboard Usaha
+        </p>
 
-            <div class="login-divider"></div>
+        <div class="login-form">
 
             <label for="login-password">
-                🔒 Password Kasir
+                Password Kasir
             </label>
 
             <div class="password-wrapper">
@@ -275,527 +53,844 @@
                     id="login-password"
                     placeholder="Masukkan password"
                     autocomplete="current-password"
-                    autocapitalize="none"
-                    spellcheck="false"
                 >
 
                 <button
                     type="button"
-                    id="toggle-password"
-                    aria-label="Tampilkan password"
+                    class="btn-show-password"
+                    onclick="togglePassword()"
                 >
                     👁️
                 </button>
 
             </div>
 
-            <div id="login-error">
-                Password salah. Silakan coba lagi.
+            <div
+                id="login-error"
+                class="login-error"
+            >
+                Password salah.
             </div>
 
             <button
-                type="button"
-                id="btn-login"
+                class="btn-login"
+                onclick="loginPOS()"
             >
-                MASUK KE POS
+                🔓 Masuk ke POS
             </button>
 
-            <div class="login-footer">
-                Sate Taichan Ria 🍢🔥
-            </div>
+        </div>
 
+        <div class="login-footer">
+            Sate Taichan RIA<br>
+            <span>Depan SMAN 1 Pariaman</span>
         </div>
 
     </div>
 
+</div>
 
-    <!-- ==========================================================
-         APLIKASI POS
-    ========================================================== -->
 
-    <div id="app">
+<!-- ======================================================
+     APLIKASI
+====================================================== -->
 
-        <header>
+<div id="app" class="app-hidden">
 
-            <div class="header-top">
+    <!-- HEADER -->
+
+    <header class="app-header">
+
+        <div class="header-left">
+
+            <div class="brand-icon">
+                🔥
+            </div>
+
+            <div>
+                <h1>Sate Taichan RIA</h1>
+                <span>POS & Dashboard Usaha</span>
+            </div>
+
+        </div>
+
+        <button
+            class="btn-lock"
+            onclick="kunciPOS()"
+            title="Kunci POS"
+        >
+            🔒
+        </button>
+
+    </header>
+
+
+    <!-- ==================================================
+         HALAMAN KASIR
+    ================================================== -->
+
+    <main
+        id="page-kasir"
+        class="page active-page"
+    >
+
+        <section class="quick-omzet">
+
+            <div>
+                <span>💰 Omzet Hari Ini</span>
+                <strong id="kasir-omzet-hari">
+                    Rp 0
+                </strong>
+            </div>
+
+            <div class="quick-omzet-info">
+                <span id="kasir-transaksi-hari">
+                    0 transaksi
+                </span>
+            </div>
+
+        </section>
+
+
+        <section class="menu-section">
+
+            <div class="section-title-row">
 
                 <div>
-                    <h1>Sate Taichan Ria 🍢🔥</h1>
-
-                    <div id="monitor-omzet">
-                        Total Omzet Hari Ini:
-                        <span id="total-omzet">Rp 0</span>
-                    </div>
+                    <h2>Daftar Menu 📋</h2>
+                    <span>Pilih menu untuk memasukkan pesanan</span>
                 </div>
-
-                <button
-                    id="btn-kunci-pos"
-                    onclick="kunciPOS()"
-                    title="Kunci POS"
-                >
-                    🔒 Kunci
-                </button>
 
             </div>
-
-        </header>
-
-
-        <main class="kasir-container">
-
-            <!-- MENU -->
-
-            <section class="menu-section">
-
-                <h2>Daftar Menu 📋</h2>
-
-                <div
-                    class="menu-grid"
-                    id="container-menu"
-                ></div>
-
-            </section>
-
-
-            <!-- KERANJANG -->
-
-            <section class="cart-section">
-
-                <h2>Keranjang Belanja</h2>
-
-                <ul id="daftar-keranjang"></ul>
-
-                <div class="total">
-                    Total:
-                    <span id="total-harga">Rp 0</span>
-                </div>
-
-                <button
-                    id="btn-bayar"
-                    onclick="bukaModalPembayaran()"
-                >
-                    Bayar & Simpan ke Cloud
-                </button>
-
-            </section>
-
-
-            <!-- LAPORAN BULANAN -->
-
-            <section class="report-section">
-
-                <h2>Laporan Omzet Bulanan 📅</h2>
-
-                <div class="table-responsive">
-
-                    <table class="report-table">
-
-                        <thead>
-
-                            <tr>
-                                <th>Bulan & Tahun</th>
-
-                                <th class="text-right">
-                                    Total Omzet
-                                </th>
-
-                                <th style="text-align:center;">
-                                    Aksi
-                                </th>
-                            </tr>
-
-                        </thead>
-
-                        <tbody id="body-laporan-bulanan">
-
-                            <tr>
-
-                                <td
-                                    colspan="3"
-                                    style="text-align:center;color:#718096;"
-                                >
-                                    Memuat data laporan bulanan...
-                                </td>
-
-                            </tr>
-
-                        </tbody>
-
-                    </table>
-
-                </div>
-
-            </section>
-
-
-            <!-- LAPORAN HARIAN -->
-
-            <section class="report-section">
-
-                <h2>Laporan Omzet Harian 📅</h2>
-
-                <div class="table-responsive">
-
-                    <table class="report-table">
-
-                        <thead>
-
-                            <tr>
-
-                                <th>Tanggal</th>
-
-                                <th class="text-right">
-                                    Total Omzet
-                                </th>
-
-                                <th style="text-align:center;">
-                                    Aksi
-                                </th>
-
-                            </tr>
-
-                        </thead>
-
-                        <tbody id="body-laporan-harian">
-
-                            <tr>
-
-                                <td
-                                    colspan="3"
-                                    style="text-align:center;color:#718096;"
-                                >
-                                    Memuat data laporan harian...
-                                </td>
-
-                            </tr>
-
-                        </tbody>
-
-                    </table>
-
-                </div>
-
-            </section>
-
-        </main>
-
-    </div>
-
-
-    <!-- ==========================================================
-         MODAL JUMLAH
-    ========================================================== -->
-
-    <div id="popup-qty" class="modal">
-
-        <div class="modal-content">
-
-            <h3 id="modal-menu-title">
-                Jumlah Pesanan
-            </h3>
-
-            <div class="qty-input-group">
-
-                <button
-                    class="btn-qty"
-                    onclick="ubahQty(-1)"
-                >
-                    -
-                </button>
-
-                <input
-                    type="number"
-                    id="modal-qty"
-                    value="1"
-                    min="1"
-                >
-
-                <button
-                    class="btn-qty"
-                    onclick="ubahQty(1)"
-                >
-                    +
-                </button>
-
-            </div>
-
-            <div class="modal-actions">
-
-                <button
-                    class="btn-cancel"
-                    onclick="tutupModal()"
-                >
-                    Batal
-                </button>
-
-                <button
-                    class="btn-confirm"
-                    onclick="konfirmasiTambahKeKeranjang()"
-                >
-                    Tambah
-                </button>
-
-            </div>
-
-        </div>
-
-    </div>
-
-
-    <!-- ==========================================================
-         MODAL PEMBAYARAN
-    ========================================================== -->
-
-    <div id="popup-pembayaran" class="modal">
-
-        <div
-            class="modal-content"
-            style="max-width:400px;"
-        >
-
-            <h3>
-                Kalkulator Pembayaran 💰
-            </h3>
 
             <div
-                style="
-                    text-align:left;
-                    margin-bottom:15px;
-                    background:#f7fafc;
-                    padding:12px;
-                    border-radius:8px;
-                    border:1px dashed #cbd5e1;
-                "
-            >
-
-                <div
-                    style="
-                        font-size:0.85rem;
-                        color:#718096;
-                    "
-                >
-                    TOTAL TAGIHAN:
-                </div>
-
-                <div
-                    id="pay-txt-tagihan"
-                    style="
-                        font-size:1.6rem;
-                        font-weight:bold;
-                        color:#2d3748;
-                    "
-                >
-                    Rp 0
-                </div>
-
-            </div>
-
-
-            <div
-                style="
-                    text-align:left;
-                    margin-bottom:15px;
-                "
-            >
-
-                <label
-                    style="
-                        font-size:0.8rem;
-                        font-weight:bold;
-                        color:#4a5568;
-                    "
-                >
-                    UANG DITERIMA (RP):
-                </label>
-
-                <input
-                    type="number"
-                    id="pay-input-nominal"
-                    class="input-bayar"
-                    placeholder="0"
-                    oninput="hitungKembalianLive()"
-                    inputmode="numeric"
-                >
-
-            </div>
-
-
-            <div
-                style="
-                    display:grid;
-                    grid-template-columns:repeat(2,1fr);
-                    gap:8px;
-                    margin-bottom:15px;
-                "
-                id="pay-container-pintasan"
+                id="container-menu"
+                class="menu-grid"
             ></div>
 
+        </section>
 
-            <div
-                style="
-                    text-align:left;
-                    margin-bottom:20px;
-                    background:#fff5f5;
-                    padding:12px;
-                    border-radius:8px;
-                    border:1px solid #fed7d7;
-                "
-            >
 
-                <div
-                    style="
-                        font-size:0.85rem;
-                        color:#e53e3e;
-                        font-weight:bold;
-                    "
-                >
-                    UANG KEMBALIAN:
+        <section class="cart-section">
+
+            <div class="cart-title">
+
+                <div>
+                    <h2>🛒 Keranjang</h2>
+                    <span id="jumlah-item-keranjang">
+                        0 item
+                    </span>
                 </div>
 
-                <div
-                    id="pay-txt-kembalian"
-                    style="
-                        font-size:1.6rem;
-                        font-weight:bold;
-                        color:#e53e3e;
-                    "
+                <button
+                    class="btn-clear-cart"
+                    onclick="kosongkanKeranjang()"
                 >
+                    Kosongkan
+                </button>
+
+            </div>
+
+            <ul
+                id="daftar-keranjang"
+                class="cart-list"
+            ></ul>
+
+
+            <div class="cart-empty" id="cart-empty">
+                Keranjang masih kosong.
+            </div>
+
+
+            <div class="cart-total">
+
+                <span>Total</span>
+
+                <strong id="total-harga">
                     Rp 0
+                </strong>
+
+            </div>
+
+            <button
+                id="btn-bayar"
+                onclick="bukaModalPembayaran()"
+            >
+                💳 Bayar & Simpan Transaksi
+            </button>
+
+        </section>
+
+    </main>
+
+
+    <!-- ==================================================
+         HALAMAN DASHBOARD
+    ================================================== -->
+
+    <main
+        id="page-dashboard"
+        class="page"
+    >
+
+        <div class="page-heading">
+
+            <div>
+                <h2>📊 Dashboard</h2>
+                <p id="dashboard-tanggal">
+                    Hari ini
+                </p>
+            </div>
+
+            <button
+                class="btn-refresh"
+                onclick="refreshDashboard()"
+            >
+                ↻
+            </button>
+
+        </div>
+
+
+        <!-- KARTU UTAMA -->
+
+        <section class="dashboard-main-card">
+
+            <span>💰 OMZET HARI INI</span>
+
+            <strong id="dash-omzet-hari">
+                Rp 0
+            </strong>
+
+            <small id="dash-periode-hari">
+                Hari ini
+            </small>
+
+        </section>
+
+
+        <!-- STATISTIK -->
+
+        <section class="stats-grid">
+
+            <div class="stat-card">
+
+                <span>🧾 Transaksi</span>
+
+                <strong id="dash-transaksi">
+                    0
+                </strong>
+
+            </div>
+
+            <div class="stat-card">
+
+                <span>🛒 Item Terjual</span>
+
+                <strong id="dash-item">
+                    0
+                </strong>
+
+            </div>
+
+            <div class="stat-card">
+
+                <span>💵 HPP</span>
+
+                <strong id="dash-hpp">
+                    Rp 0
+                </strong>
+
+            </div>
+
+            <div class="stat-card profit-card">
+
+                <span>📈 Laba Kotor</span>
+
+                <strong id="dash-laba">
+                    Rp 0
+                </strong>
+
+            </div>
+
+        </section>
+
+
+        <!-- RATA-RATA TRANSAKSI -->
+
+        <section class="info-card">
+
+            <div>
+
+                <span>🛍️ Rata-rata transaksi</span>
+
+                <strong id="dash-rata">
+                    Rp 0
+                </strong>
+
+            </div>
+
+            <div class="info-icon">
+                🧮
+            </div>
+
+        </section>
+
+
+        <!-- MENU TERLARIS -->
+
+        <section class="dashboard-section">
+
+            <div class="section-heading">
+
+                <h3>🥇 Menu Terlaris Hari Ini</h3>
+
+            </div>
+
+            <div id="menu-terlaris">
+                <div class="empty-data">
+                    Belum ada penjualan hari ini.
+                </div>
+            </div>
+
+        </section>
+
+
+        <!-- BULAN -->
+
+        <section class="dashboard-section">
+
+            <div class="section-heading">
+
+                <h3>📅 Bulan Berjalan</h3>
+
+                <span id="dash-bulan-label">
+                    -
+                </span>
+
+            </div>
+
+            <div class="month-summary">
+
+                <div>
+                    <span>Omzet</span>
+                    <strong id="dash-omzet-bulan">
+                        Rp 0
+                    </strong>
+                </div>
+
+                <div>
+                    <span>HPP</span>
+                    <strong id="dash-hpp-bulan">
+                        Rp 0
+                    </strong>
+                </div>
+
+                <div>
+                    <span>Laba Kotor</span>
+                    <strong id="dash-laba-bulan">
+                        Rp 0
+                    </strong>
                 </div>
 
             </div>
 
+        </section>
 
-            <div class="modal-actions">
+    </main>
 
-                <button
-                    class="btn-cancel"
-                    onclick="tutupModalPembayaran()"
-                >
-                    Batal
-                </button>
 
-                <button
-                    class="btn-confirm"
-                    id="pay-btn-eksekusi"
-                    onclick="prosesPembayaranAkhir()"
-                    style="background:#10b981;"
-                >
-                    Simpan Transaksi
-                </button>
+    <!-- ==================================================
+         HALAMAN LAPORAN
+    ================================================== -->
+
+    <main
+        id="page-laporan"
+        class="page"
+    >
+
+        <div class="page-heading">
+
+            <div>
+                <h2>📈 Laporan</h2>
+                <p>Riwayat penjualan Sate Taichan RIA</p>
+            </div>
+
+        </div>
+
+
+        <section class="report-section">
+
+            <h3>📅 Laporan Bulanan</h3>
+
+            <div class="table-scroll">
+
+                <table class="report-table">
+
+                    <thead>
+                        <tr>
+                            <th>Bulan</th>
+                            <th>Omzet</th>
+                            <th>Aksi</th>
+                        </tr>
+                    </thead>
+
+                    <tbody id="body-laporan-bulanan">
+
+                        <tr>
+                            <td colspan="3">
+                                Memuat...
+                            </td>
+                        </tr>
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </section>
+
+
+        <section class="report-section">
+
+            <h3>📆 Laporan Harian</h3>
+
+            <div class="table-scroll">
+
+                <table class="report-table">
+
+                    <thead>
+
+                        <tr>
+                            <th>Tanggal</th>
+                            <th>Omzet</th>
+                            <th>Aksi</th>
+                        </tr>
+
+                    </thead>
+
+                    <tbody id="body-laporan-harian">
+
+                        <tr>
+                            <td colspan="3">
+                                Memuat...
+                            </td>
+                        </tr>
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </section>
+
+    </main>
+
+
+    <!-- ==================================================
+         HALAMAN HPP
+    ================================================== -->
+
+    <main
+        id="page-hpp"
+        class="page"
+    >
+
+        <div class="page-heading">
+
+            <div>
+                <h2>⚙️ HPP Menu</h2>
+
+                <p>
+                    Isi biaya produksi setiap menu
+                </p>
 
             </div>
 
         </div>
 
-    </div>
+
+        <div class="hpp-info">
+
+            <strong>💡 Apa itu HPP?</strong>
+
+            <p>
+                HPP adalah perkiraan biaya yang dikeluarkan
+                untuk menghasilkan satu produk.
+                Masukkan biaya bahan dan produksi per porsi/item.
+            </p>
+
+        </div>
 
 
-    <!-- ==========================================================
-         MODAL DETAIL
-    ========================================================== -->
+        <section class="hpp-list">
 
-    <div id="popup-detail" class="modal">
+            <div id="container-hpp"></div>
 
-        <div class="modal-content">
+        </section>
 
-            <h3 id="modal-detail-title">
-                Detail Transaksi
-            </h3>
 
-            <ul
-                id="list-riwayat-transaksi"
-                class="riwayat-list"
-            ></ul>
+        <button
+            class="btn-save-hpp"
+            onclick="simpanSemuaHPP()"
+        >
+            💾 Simpan HPP
+        </button>
+
+
+        <div class="hpp-note">
+
+            HPP tersimpan di perangkat kasir ini.
+            Anda dapat mengubahnya kapan saja.
+
+        </div>
+
+    </main>
+
+
+    <!-- ==================================================
+         NAVIGASI BAWAH
+    ================================================== -->
+
+    <nav class="bottom-nav">
+
+        <button
+            class="nav-item active"
+            data-page="kasir"
+            onclick="bukaHalaman('kasir')"
+        >
+
+            <span>🧾</span>
+            <small>Kasir</small>
+
+        </button>
+
+
+        <button
+            class="nav-item"
+            data-page="dashboard"
+            onclick="bukaHalaman('dashboard')"
+        >
+
+            <span>📊</span>
+            <small>Dashboard</small>
+
+        </button>
+
+
+        <button
+            class="nav-item"
+            data-page="laporan"
+            onclick="bukaHalaman('laporan')"
+        >
+
+            <span>📈</span>
+            <small>Laporan</small>
+
+        </button>
+
+
+        <button
+            class="nav-item"
+            data-page="hpp"
+            onclick="bukaHalaman('hpp')"
+        >
+
+            <span>⚙️</span>
+            <small>HPP</small>
+
+        </button>
+
+    </nav>
+
+</div>
+
+
+<!-- ======================================================
+     MODAL JUMLAH
+====================================================== -->
+
+<div
+    id="popup-qty"
+    class="modal"
+>
+
+    <div class="modal-content">
+
+        <button
+            class="modal-close"
+            onclick="tutupModal()"
+        >
+            ×
+        </button>
+
+        <div class="modal-icon">
+            🍢
+        </div>
+
+        <h3 id="modal-menu-title">
+            Jumlah Pesanan
+        </h3>
+
+        <div class="qty-input-group">
 
             <button
-                class="btn-cancel"
-                style="width:100%;"
-                onclick="tutupModalDetail()"
+                class="btn-qty"
+                onclick="ubahQty(-1)"
             >
-                Tutup
+                −
+            </button>
+
+            <input
+                type="number"
+                id="modal-qty"
+                value="1"
+                min="1"
+            >
+
+            <button
+                class="btn-qty"
+                onclick="ubahQty(1)"
+            >
+                +
+            </button>
+
+        </div>
+
+        <div class="modal-actions">
+
+            <button
+                class="btn-secondary"
+                onclick="tutupModal()"
+            >
+                Batal
+            </button>
+
+            <button
+                class="btn-primary"
+                onclick="konfirmasiTambahKeKeranjang()"
+            >
+                Tambah
             </button>
 
         </div>
 
     </div>
 
-
-    <!-- ==========================================================
-         FIREBASE
-    ========================================================== -->
-
-    <script type="module">
-
-        import {
-            initializeApp
-        } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-
-        import {
-            getFirestore,
-            collection,
-            addDoc,
-            onSnapshot,
-            doc,
-            deleteDoc
-        } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+</div>
 
 
-        const firebaseConfig = {
+<!-- ======================================================
+     MODAL PEMBAYARAN
+====================================================== -->
 
-            apiKey:
-                "AIzaSyDO1azSolglCV-xJrlmZ5WKWb7Cec9ZrZI",
+<div
+    id="popup-pembayaran"
+    class="modal"
+>
 
-            authDomain:
-                "sate-taichan-pos.firebaseapp.com",
+    <div class="modal-content payment-modal">
 
-            projectId:
-                "sate-taichan-pos",
+        <button
+            class="modal-close"
+            onclick="tutupModalPembayaran()"
+        >
+            ×
+        </button>
 
-            storageBucket:
-                "sate-taichan-pos.firebasestorage.app",
+        <div class="modal-icon">
+            💰
+        </div>
 
-            messagingSenderId:
-                "753807128515",
-
-            appId:
-                "1:753807128515:web:91ef30cdb7dd2fa54eaf76",
-
-            measurementId:
-                "G-4QB3L8971"
-
-        };
-
-
-        const app = initializeApp(firebaseConfig);
-
-        const db = getFirestore(app);
+        <h3>Pembayaran</h3>
 
 
-        window.db = db;
+        <div class="payment-total">
 
-        window.collection = collection;
+            <span>Total Tagihan</span>
 
-        window.addDoc = addDoc;
+            <strong id="pay-txt-tagihan">
+                Rp 0
+            </strong>
 
-        window.onSnapshot = onSnapshot;
-
-        window.docRef = doc;
-
-        window.deleteDoc = deleteDoc;
+        </div>
 
 
-        /*
-         * app.js hanya dijalankan setelah Firebase siap.
-         */
+        <label
+            class="input-label"
+            for="pay-input-nominal"
+        >
+            Uang Diterima
+        </label>
 
-        const script = document.createElement("script");
+        <input
+            type="number"
+            id="pay-input-nominal"
+            class="input-bayar"
+            placeholder="Masukkan nominal"
+            inputmode="numeric"
+            oninput="hitungKembalianLive()"
+        >
 
-        script.src = "app.js";
 
-        document.body.appendChild(script);
+        <div
+            id="pay-container-pintasan"
+            class="quick-money"
+        ></div>
 
-    </script>
+
+        <div class="change-box">
+
+            <span>Uang Kembalian</span>
+
+            <strong id="pay-txt-kembalian">
+                Rp 0
+            </strong>
+
+        </div>
+
+
+        <div class="modal-actions">
+
+            <button
+                class="btn-secondary"
+                onclick="tutupModalPembayaran()"
+            >
+                Batal
+            </button>
+
+            <button
+                class="btn-success"
+                id="pay-btn-eksekusi"
+                onclick="prosesPembayaranAkhir()"
+            >
+                Simpan
+            </button>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- ======================================================
+     MODAL DETAIL TRANSAKSI
+====================================================== -->
+
+<div
+    id="popup-detail"
+    class="modal"
+>
+
+    <div class="modal-content detail-modal">
+
+        <button
+            class="modal-close"
+            onclick="tutupModalDetail()"
+        >
+            ×
+        </button>
+
+        <h3 id="modal-detail-title">
+            Detail Transaksi
+        </h3>
+
+        <ul
+            id="list-riwayat-transaksi"
+            class="riwayat-list"
+        ></ul>
+
+        <button
+            class="btn-secondary full-width"
+            onclick="tutupModalDetail()"
+        >
+            Tutup
+        </button>
+
+    </div>
+
+</div>
+
+
+<!-- ======================================================
+     FIREBASE
+====================================================== -->
+
+<script type="module">
+
+    import {
+        initializeApp
+    }
+    from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+
+
+    import {
+        getFirestore,
+        collection,
+        addDoc,
+        onSnapshot,
+        doc,
+        deleteDoc
+    }
+    from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+
+    const firebaseConfig = {
+
+        apiKey: "AIzaSyDO1azSolglCV-xJrlmZ5WKWb7Cec9ZrZI",
+
+        authDomain:
+            "sate-taichan-pos.firebaseapp.com",
+
+        projectId:
+            "sate-taichan-pos",
+
+        storageBucket:
+            "sate-taichan-pos.firebasestorage.app",
+
+        messagingSenderId:
+            "753807128515",
+
+        appId:
+            "1:753807128515:web:91ef30cdb7dd2fa54eaf76",
+
+        measurementId:
+            "G-4QB3L8971E"
+    };
+
+
+    const app = initializeApp(firebaseConfig);
+
+    const db = getFirestore(app);
+
+
+    window.db = db;
+
+    window.collection = collection;
+
+    window.addDoc = addDoc;
+
+    window.onSnapshot = onSnapshot;
+
+    window.docRef = doc;
+
+    window.deleteDoc = deleteDoc;
+
+
+    /*
+     * app.js sengaja dimuat setelah Firebase siap.
+     */
+
+    const script = document.createElement("script");
+
+    script.src = "app.js";
+
+    document.body.appendChild(script);
+
+</script>
 
 </body>
 </html>
